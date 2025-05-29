@@ -7,4 +7,5 @@ type Signature struct {
 	ClientIIN   string `json:"client_iin"`
 	ClientPhone string `json:"client_phone"`
 	SignedAt    string `json:"signed_at"`
+	Method      string `json:"method"`
 }

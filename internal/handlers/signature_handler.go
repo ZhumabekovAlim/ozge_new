@@ -62,3 +62,27 @@ func (h *SignatureHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 }
+
+func (h *SignatureHandler) Sign(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		ContractID  int    `json:"contract_id"`
+		ClientName  string `json:"client_name"`
+		ClientIIN   string `json:"client_iin"`
+		ClientPhone string `json:"client_phone"`
+		Method      string `json:"method"`
+		CompanyID   int    `json:"company_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "invalid input", http.StatusBadRequest)
+		return
+	}
+
+	err := h.Service.Sign(input.ContractID, input.ClientName, input.ClientIIN, input.ClientPhone, input.Method, input.CompanyID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}

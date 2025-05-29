@@ -38,6 +38,7 @@ func (app *application) routes() http.Handler {
 	mux.Get("/signatures/:id", standardMiddleware.ThenFunc(app.signatureHandler.GetByID))
 	mux.Get("/signatures/contract/:id", standardMiddleware.ThenFunc(app.signatureHandler.GetByContractID))
 	mux.Del("/signatures/:id", standardMiddleware.ThenFunc(app.signatureHandler.Delete))
+	mux.Post("/signatures/sign", standardMiddleware.ThenFunc(app.signatureHandler.Sign))
 
 	mux.Post("/contract-fields", standardMiddleware.ThenFunc(app.contractFieldHandler.Create))
 	mux.Get("/contract-fields/:id", standardMiddleware.ThenFunc(app.contractFieldHandler.GetByContractID))
@@ -46,6 +47,23 @@ func (app *application) routes() http.Handler {
 	mux.Get("/signature-fields/signature/:id", standardMiddleware.ThenFunc(app.signatureFieldValueHandler.GetBySignatureID))
 
 	mux.Get("/stats/company/:id", standardMiddleware.ThenFunc(app.statisticsHandler.GetCompanyStats))
+
+	mux.Post("/company-balances", standardMiddleware.ThenFunc(app.companyBalanceHandler.Create))
+	mux.Get("/company-balances/:id", standardMiddleware.ThenFunc(app.companyBalanceHandler.GetByCompanyID))
+	mux.Put("/company-balances/:id", standardMiddleware.ThenFunc(app.companyBalanceHandler.Update))
+	mux.Del("/company-balances/:id", standardMiddleware.ThenFunc(app.companyBalanceHandler.Delete))
+
+	mux.Post("/tariff-plans", standardMiddleware.ThenFunc(app.tariffPlanHandler.Create))
+	mux.Get("/tariff-plans", standardMiddleware.ThenFunc(app.tariffPlanHandler.GetAll))
+	mux.Get("/tariff-plans/:id", standardMiddleware.ThenFunc(app.tariffPlanHandler.GetByID))
+	mux.Put("/tariff-plans/:id", standardMiddleware.ThenFunc(app.tariffPlanHandler.Update))
+	mux.Del("/tariff-plans/:id", standardMiddleware.ThenFunc(app.tariffPlanHandler.Delete))
+
+	mux.Post("/payment_requests", standardMiddleware.ThenFunc(app.paymentHandler.Create))
+	mux.Get("/payment_requests/:id", standardMiddleware.ThenFunc(app.paymentHandler.GetByID))
+	mux.Get("/payment_requests/company/:id", standardMiddleware.ThenFunc(app.paymentHandler.GetByCompany))
+	mux.Put("/payment_requests/:id", standardMiddleware.ThenFunc(app.paymentHandler.Update))
+	mux.Del("/payment_requests/:id", standardMiddleware.ThenFunc(app.paymentHandler.Delete))
 
 	return standardMiddleware.Then(mux)
 }

@@ -6,5 +6,6 @@ CREATE TABLE signatures
     client_iin   VARCHAR(12),
     client_phone VARCHAR(20),
     signed_at    TIMESTAMP,
+    method      ENUM('sms', 'ecp') NOT NULL,
     FOREIGN KEY (contract_id) REFERENCES contracts (id) ON DELETE CASCADE
 );

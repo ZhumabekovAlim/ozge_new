@@ -22,6 +22,9 @@ type application struct {
 	contractFieldHandler       *handlers.ContractFieldHandler
 	signatureFieldValueHandler *handlers.SignatureFieldValueHandler
 	statisticsHandler          *handlers.StatisticsHandler
+	companyBalanceHandler      *handlers.CompanyBalanceHandler
+	tariffPlanHandler          *handlers.TariffPlanHandler
+	paymentHandler             *handlers.PaymentRequestHandler
 }
 
 func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
@@ -58,6 +61,18 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 	statsService := service.NewStatisticsService(statsRepo)
 	statsHandler := handlers.NewStatisticsHandler(statsService)
 
+	companyBalanceRepo := repository.NewCompanyBalanceRepository(db)
+	companyBalanceService := service.NewCompanyBalanceService(companyBalanceRepo)
+	companyBalanceHandler := handlers.NewCompanyBalanceHandler(companyBalanceService)
+
+	tariffPlanRepo := repository.NewTariffPlanRepository(db)
+	tariffPlanService := service.NewTariffPlanService(tariffPlanRepo)
+	tariffPlanHandler := handlers.NewTariffPlanHandler(tariffPlanService)
+
+	paymentRepo := repository.NewPaymentRequestRepository(db)
+	paymentService := service.NewPaymentRequestService(paymentRepo)
+	paymentHandler := handlers.NewPaymentRequestHandler(paymentService)
+
 	return &application{
 		errorLog:                   errorLog,
 		infoLog:                    infoLog,
@@ -68,6 +83,9 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 		contractFieldHandler:       contractFieldHandler,
 		signatureFieldValueHandler: signatureFieldValueHandler,
 		statisticsHandler:          statsHandler,
+		companyBalanceHandler:      companyBalanceHandler,
+		tariffPlanHandler:          tariffPlanHandler,
+		paymentHandler:             paymentHandler,
 	}
 }
 
