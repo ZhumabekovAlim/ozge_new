@@ -15,6 +15,7 @@ func (app *application) routes() http.Handler {
 	mux := pat.New()
 
 	mux.Post("/companies/register", standardMiddleware.ThenFunc(app.companyHandler.Register))
+	mux.Post("/companies/login", standardMiddleware.ThenFunc(app.companyHandler.Login))
 	mux.Get("/companies", standardMiddleware.ThenFunc(app.companyHandler.GetAll))
 	mux.Get("/companies/id/:id", standardMiddleware.ThenFunc(app.companyHandler.GetByID))
 	mux.Get("/companies/phone/:phone", standardMiddleware.ThenFunc(app.companyHandler.GetByPhone))

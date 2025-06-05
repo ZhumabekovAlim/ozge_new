@@ -33,6 +33,27 @@ func (h *CompanyHandler) Register(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// POST /companies/login
+func (h *CompanyHandler) Login(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Phone    string `json:"phone"`
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil || input.Phone == "" || input.Password == "" {
+		http.Error(w, "invalid input", http.StatusBadRequest)
+		return
+	}
+
+	company, err := h.Service.Login(input.Phone, input.Password)
+	if err != nil {
+		http.Error(w, "authentication failed", http.StatusUnauthorized)
+		return
+	}
+
+	company.Password = ""
+	json.NewEncoder(w).Encode(company)
+}
+
 // GET /companies
 func (h *CompanyHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	companies, err := h.Service.List()

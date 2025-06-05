@@ -8,8 +8,9 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.18.3
 	github.com/google/uuid v1.6.0
 	github.com/justinas/alice v1.2.0
-	github.com/rs/cors v1.11.1
-	gopkg.in/yaml.v3 v3.0.1
+        github.com/rs/cors v1.11.1
+       golang.org/x/crypto v0.17.0
+        gopkg.in/yaml.v3 v3.0.1
 )
 
 require (

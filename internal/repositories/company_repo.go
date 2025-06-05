@@ -70,3 +70,14 @@ func (r *CompanyRepository) Delete(id int) error {
 	_, err := r.DB.Exec(`DELETE FROM companies WHERE id = ?`, id)
 	return err
 }
+
+func (r *CompanyRepository) Authenticate(phone string) (*models.Company, error) {
+	query := `SELECT id, name, email, phone, password FROM companies WHERE phone = ?`
+	row := r.DB.QueryRow(query, phone)
+	var c models.Company
+	err := row.Scan(&c.ID, &c.Name, &c.Email, &c.Phone, &c.Password)
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
