@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 
 	"OzgeContract/internal/models"
@@ -37,7 +38,16 @@ func (h *TemplateHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	companyID, _ := strconv.Atoi(r.FormValue("company_id"))
 	name := r.FormValue("name")
 
-	path := fmt.Sprintf("uploads/templates/company_%d_%s", companyID, header.Filename)
+	safeFileName := filepath.Base(header.Filename)
+	path := fmt.Sprintf("uploads/templates/company_%d_%s", companyID, safeFileName)
+
+	// Создаём директорию, если нет
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		http.Error(w, "cannot create directory", http.StatusInternalServerError)
+		return
+	}
+
 	dst, err := os.Create(path)
 	if err != nil {
 		http.Error(w, "cannot save file", http.StatusInternalServerError)
