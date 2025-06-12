@@ -39,6 +39,20 @@ func (r *SignatureRepository) GetByContractID(contractID int) (*models.Signature
 	return &s, nil
 }
 
+func (r *SignatureRepository) GetContractByCompanyID(companyID int) (*models.Signature, error) {
+	var s models.Signature
+	query := `SELECT s.id, t.name, client_name, client_iin, signed_at FROM signatures s
+				JOIN contracts c on c.id = s.contract_id
+				JOIN templates t on t.id = c.template_id
+				JOIN signature_field_values sfv on s.id = sfv.signature_id
+			  WHERE c.company_id = ? ORDER BY s.signed_at DESC`
+	err := r.DB.QueryRow(query, companyID).Scan(&s.ID, &s.TemplateName, &s.ClientName, &s.ClientIIN, &s.SignedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &s, nil
+}
+
 func (r *SignatureRepository) Delete(id int) error {
 	_, err := r.DB.Exec(`DELETE FROM signatures WHERE id = ?`, id)
 	return err
