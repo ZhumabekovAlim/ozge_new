@@ -36,7 +36,7 @@ func (h *SignatureHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(idStr)
 	sig, err := h.Service.GetByID(id)
 	if err != nil {
-		http.Error(w, "not found", http.StatusNotFound)
+		http.Error(w, "not found", http.StatusOK)
 		return
 	}
 	json.NewEncoder(w).Encode(sig)
@@ -47,20 +47,26 @@ func (h *SignatureHandler) GetByContractID(w http.ResponseWriter, r *http.Reques
 	contractID, _ := strconv.Atoi(contractIDStr)
 	sig, err := h.Service.GetByContractID(contractID)
 	if err != nil {
-		http.Error(w, "not found", http.StatusNotFound)
+		http.Error(w, "not found", http.StatusOK)
 		return
 	}
 	json.NewEncoder(w).Encode(sig)
 }
-func (h *SignatureHandler) GetContractByCompanyID(w http.ResponseWriter, r *http.Request) {
+
+func (h *SignatureHandler) GetContractsByCompanyID(w http.ResponseWriter, r *http.Request) {
 	companyIDStr := r.URL.Query().Get(":id")
-	companyID, _ := strconv.Atoi(companyIDStr)
-	sig, err := h.Service.GetContractByCompanyID(companyID)
+	companyID, err := strconv.Atoi(companyIDStr)
+	if err != nil {
+		http.Error(w, "invalid company ID", http.StatusBadRequest)
+		return
+	}
+
+	sigs, err := h.Service.GetContractsByCompanyID(companyID)
 	if err != nil {
 		http.Error(w, "not found", http.StatusNotFound)
 		return
 	}
-	json.NewEncoder(w).Encode(sig)
+	json.NewEncoder(w).Encode(sigs)
 }
 
 func (h *SignatureHandler) Delete(w http.ResponseWriter, r *http.Request) {

@@ -26,8 +26,8 @@ func (s *SignatureService) GetByID(id int) (*models.Signature, error) {
 func (s *SignatureService) GetByContractID(contractID int) (*models.Signature, error) {
 	return s.Repo.GetByContractID(contractID)
 }
-func (s *SignatureService) GetContractByCompanyID(companyID int) (*models.Signature, error) {
-	return s.Repo.GetContractByCompanyID(companyID)
+func (s *SignatureService) GetContractsByCompanyID(companyID int) ([]models.Signature, error) {
+	return s.Repo.GetContractsByCompanyID(companyID)
 }
 
 func (s *SignatureService) Delete(id int) error {
