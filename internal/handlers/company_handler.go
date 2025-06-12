@@ -37,16 +37,16 @@ func (h *CompanyHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 func (h *CompanyHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Login    string `json:"login"`    // email или phone
+		Phone    string `json:"phone"`    // email или phone
 		Password string `json:"password"` // пароль
 	}
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil ||
-		input.Login == "" || input.Password == "" {
+		input.Phone == "" || input.Password == "" {
 		http.Error(w, "invalid input", http.StatusBadRequest)
 		return
 	}
 
-	company, err := h.Service.Login(input.Login, input.Password)
+	company, err := h.Service.Login(input.Phone, input.Password)
 	if err != nil {
 		http.Error(w, "invalid login or password", http.StatusUnauthorized)
 		return
