@@ -10,3 +10,16 @@ type Contract struct {
 	ClientFilled     bool   `json:"client_filled"`
 	CreatedAt        string `json:"created_at"`
 }
+
+type CreateContractRequest struct {
+	CompanyID        int                `json:"company_id"`
+	TemplateID       int                `json:"template_id"`
+	GeneratedPDFPath string             `json:"generated_pdf_path"`
+	ClientFilled     bool               `json:"client_filled"`
+	Method           string             `json:"method"`
+	Fields           []ContractFieldDTO `json:"fields"` // новая структура (без contract_id)
+}
+type ContractFieldDTO struct {
+	FieldName string `json:"field_name"`
+	FieldType string `json:"field_type"`
+}

@@ -88,3 +88,39 @@ func (h *ContractHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 }
+
+func (h *ContractHandler) CreateWithFields(w http.ResponseWriter, r *http.Request) {
+	var input models.CreateContractRequest
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "invalid input", http.StatusBadRequest)
+		return
+	}
+
+	// собираем contract
+	contract := models.Contract{
+		CompanyID:        input.CompanyID,
+		TemplateID:       input.TemplateID,
+		GeneratedPDFPath: input.GeneratedPDFPath,
+		ClientFilled:     input.ClientFilled,
+		Method:           input.Method,
+		ContractToken:    uuid.New().String(),
+	}
+
+	// собираем contract fields (без contract_id)
+	fields := make([]models.ContractField, 0)
+	for _, f := range input.Fields {
+		fields = append(fields, models.ContractField{
+			FieldName: f.FieldName,
+			FieldType: f.FieldType,
+		})
+	}
+
+	// вызываем сервис
+	err := h.Service.CreateWithFields(&contract, fields)
+	if err != nil {
+		http.Error(w, "failed to create contract and fields", http.StatusInternalServerError)
+		return
+	}
+	// верни новый контракт + fields
+	json.NewEncoder(w).Encode(contract)
+}

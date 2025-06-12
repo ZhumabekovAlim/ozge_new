@@ -29,6 +29,7 @@ func (app *application) routes() http.Handler {
 	mux.Del("/templates/:id", standardMiddleware.ThenFunc(app.templateHandler.Delete))
 
 	mux.Post("/contracts", standardMiddleware.ThenFunc(app.contractHandler.Create))
+	mux.Post("/contracts/with-fields", standardMiddleware.ThenFunc(app.contractHandler.CreateWithFields))
 	mux.Get("/contracts/:id", standardMiddleware.ThenFunc(app.contractHandler.GetByID))
 	mux.Get("/contracts/token/:token", standardMiddleware.ThenFunc(app.contractHandler.GetByToken))
 	mux.Get("/contracts/company/:id", standardMiddleware.ThenFunc(app.contractHandler.GetByCompany))

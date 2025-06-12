@@ -41,15 +41,15 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 
 	// Contract
 	contractRepo := repository.NewContractRepository(db)
-	contractService := service.NewContractService(contractRepo)
+	contractFieldRepo := repository.NewContractFieldRepository(db)
+	contractService := service.NewContractService(contractRepo, contractFieldRepo)
 	contractHandler := handlers.NewContractHandler(contractService)
 
 	// Signatures
 	signatureRepo := repository.NewSignatureRepository(db)
 	signatureService := service.NewSignatureService(signatureRepo)
 	signatureHandler := handlers.NewSignatureHandler(signatureService)
-
-	contractFieldRepo := repository.NewContractFieldRepository(db)
+	
 	contractFieldService := service.NewContractFieldService(contractFieldRepo)
 	contractFieldHandler := handlers.NewContractFieldHandler(contractFieldService)
 

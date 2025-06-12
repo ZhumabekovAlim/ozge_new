@@ -70,3 +70,20 @@ func (r *ContractRepository) Delete(id int) error {
 	_, err := r.DB.Exec(`DELETE FROM contracts WHERE id = ?`, id)
 	return err
 }
+
+func (r *ContractRepository) CreateTx(tx *sql.Tx, c *models.Contract) (int, error) {
+	query := `INSERT INTO contracts (company_id, template_id, contract_token, generated_file_path, client_filled, method, created_at)
+              VALUES (?, ?, ?, ?, ?, ?, NOW())`
+	res, err := tx.Exec(query, c.CompanyID, c.TemplateID, c.ContractToken, c.GeneratedPDFPath, c.ClientFilled, c.Method)
+	if err != nil {
+		return 0, err
+	}
+	id, err := res.LastInsertId()
+	return int(id), err
+}
+
+func (r *ContractFieldRepository) CreateTx(tx *sql.Tx, field *models.ContractField) error {
+	query := `INSERT INTO contract_fields (contract_id, field_name, field_type) VALUES (?, ?, ?)`
+	_, err := tx.Exec(query, field.ContractID, field.FieldName, field.FieldType)
+	return err
+}

@@ -6,11 +6,18 @@ import (
 )
 
 type ContractService struct {
-	Repo *repositories.ContractRepository
+	Repo              *repositories.ContractRepository
+	ContractFieldRepo *repositories.ContractFieldRepository
 }
 
-func NewContractService(repo *repositories.ContractRepository) *ContractService {
-	return &ContractService{Repo: repo}
+func NewContractService(
+	repo *repositories.ContractRepository,
+	fieldRepo *repositories.ContractFieldRepository,
+) *ContractService {
+	return &ContractService{
+		Repo:              repo,
+		ContractFieldRepo: fieldRepo,
+	}
 }
 
 func (s *ContractService) Create(c *models.Contract) error {
@@ -35,4 +42,32 @@ func (s *ContractService) Update(c *models.Contract) error {
 
 func (s *ContractService) Delete(id int) error {
 	return s.Repo.Delete(id)
+}
+
+func (s *ContractService) CreateWithFields(c *models.Contract, fields []models.ContractField) error {
+	tx, err := s.Repo.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// создаём контракт и получаем id
+	id, err := s.Repo.CreateTx(tx, c)
+	if err != nil {
+		return err
+	}
+	c.ID = id
+
+	// создаём поля с этим id
+	for i := range fields {
+		fields[i].ContractID = id
+		if err = s.ContractFieldRepo.CreateTx(tx, &fields[i]); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
