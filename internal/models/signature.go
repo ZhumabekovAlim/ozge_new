@@ -9,5 +9,6 @@ type Signature struct {
 	SignedAt     string `json:"signed_at"`
 	Method       string `json:"method"`
 	Status       int    `json:"status"`
+	SignFilePath string `json:"sign_file_path"`
 	TemplateName string `json:"template_name,omitempty"`
 }
