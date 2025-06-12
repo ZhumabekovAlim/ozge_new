@@ -3,6 +3,7 @@ package repositories
 import (
 	"OzgeContract/internal/models"
 	"database/sql"
+	"fmt"
 )
 
 type SignatureRepository struct {
@@ -41,12 +42,13 @@ func (r *SignatureRepository) GetByContractID(contractID int) (*models.Signature
 
 func (r *SignatureRepository) GetContractByCompanyID(companyID int) (*models.Signature, error) {
 	var s models.Signature
-	query := `SELECT s.id, t.name, client_name, client_iin, signed_at FROM signatures s
+	query := `SELECT s.id, t.name, client_name, client_iin, signed_at, sign_file_path FROM signatures s
 				LEFT JOIN contracts c on c.id = s.contract_id
 				LEFT JOIN templates t on t.id = c.template_id
 				LEFT JOIN signature_field_values sfv on s.id = sfv.signature_id
-				WHERE c.company_id = 1`
+				WHERE c.company_id = ?`
 	err := r.DB.QueryRow(query, companyID).Scan(&s.ID, &s.TemplateName, &s.ClientName, &s.ClientIIN, &s.SignedAt, &s.SignFilePath)
+
 	if err != nil {
 		return nil, err
 	}
