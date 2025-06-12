@@ -1,12 +1,11 @@
 package handlers
 
 import (
+	"OzgeContract/internal/models"
+	"OzgeContract/internal/services"
 	"encoding/json"
 	"net/http"
 	"strconv"
-
-	"OzgeContract/internal/models"
-	"OzgeContract/internal/services"
 )
 
 type PaymentRequestHandler struct {
@@ -23,11 +22,14 @@ func (h *PaymentRequestHandler) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid input", http.StatusBadRequest)
 		return
 	}
+
 	if err := h.Service.Create(&input); err != nil {
 		http.Error(w, "create failed", http.StatusInternalServerError)
 		return
 	}
+
 	json.NewEncoder(w).Encode(input)
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (h *PaymentRequestHandler) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -39,6 +41,7 @@ func (h *PaymentRequestHandler) GetByID(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	json.NewEncoder(w).Encode(p)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *PaymentRequestHandler) GetByCompany(w http.ResponseWriter, r *http.Request) {
@@ -50,6 +53,7 @@ func (h *PaymentRequestHandler) GetByCompany(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	json.NewEncoder(w).Encode(list)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *PaymentRequestHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -66,6 +70,7 @@ func (h *PaymentRequestHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+
 }
 
 func (h *PaymentRequestHandler) Delete(w http.ResponseWriter, r *http.Request) {

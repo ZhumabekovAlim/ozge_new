@@ -20,17 +20,39 @@ func NewCompanyHandler(s *services.CompanyService) *CompanyHandler {
 // POST /companies/register
 func (h *CompanyHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var input models.Company
-	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil || input.Name == "" || input.Email == "" || input.Phone == "" || input.Password == "" {
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil ||
+		input.Name == "" || input.Password == "" || (input.Email == "" && input.Phone == "") {
 		http.Error(w, "invalid input", http.StatusBadRequest)
 		return
 	}
-	err = h.Service.Register(&input)
+
+	company, err := h.Service.Register(&input)
 	if err != nil {
-		http.Error(w, "could not create company", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(company)
+}
+
+func (h *CompanyHandler) Login(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Login    string `json:"login"`    // email или phone
+		Password string `json:"password"` // пароль
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil ||
+		input.Login == "" || input.Password == "" {
+		http.Error(w, "invalid input", http.StatusBadRequest)
+		return
+	}
+
+	company, err := h.Service.Login(input.Login, input.Password)
+	if err != nil {
+		http.Error(w, "invalid login or password", http.StatusUnauthorized)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(company)
 }
 
 // GET /companies

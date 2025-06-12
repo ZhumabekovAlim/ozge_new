@@ -53,6 +53,7 @@ func (h *TemplateHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "cannot save file", http.StatusInternalServerError)
 		return
 	}
+
 	defer dst.Close()
 	_, err = io.Copy(dst, file)
 	if err != nil {
@@ -65,11 +66,14 @@ func (h *TemplateHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		Name:      name,
 		FilePath:  path,
 	}
+
 	if err := h.Service.Create(t); err != nil {
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return
 	}
+
 	json.NewEncoder(w).Encode(t)
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (h *TemplateHandler) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -81,6 +85,7 @@ func (h *TemplateHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	json.NewEncoder(w).Encode(t)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *TemplateHandler) GetByCompany(w http.ResponseWriter, r *http.Request) {
@@ -92,6 +97,7 @@ func (h *TemplateHandler) GetByCompany(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	json.NewEncoder(w).Encode(list)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *TemplateHandler) Update(w http.ResponseWriter, r *http.Request) {

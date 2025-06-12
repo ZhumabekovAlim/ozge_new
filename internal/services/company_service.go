@@ -13,8 +13,12 @@ func NewCompanyService(repo *repositories.CompanyRepository) *CompanyService {
 	return &CompanyService{Repo: repo}
 }
 
-func (s *CompanyService) Register(c *models.Company) error {
-	return s.Repo.Create(c)
+func (s *CompanyService) Register(c *models.Company) (models.Company, error) {
+	return s.Repo.SignUp(*c)
+}
+
+func (s *CompanyService) Login(login, password string) (models.Company, error) {
+	return s.Repo.LogIn(login, password)
 }
 
 func (s *CompanyService) List() ([]models.Company, error) {
