@@ -38,7 +38,7 @@ func (app *application) routes() http.Handler {
 	mux.Post("/signatures", standardMiddleware.ThenFunc(app.signatureHandler.Create))
 	mux.Get("/signatures/:id", standardMiddleware.ThenFunc(app.signatureHandler.GetByID))
 	mux.Get("/signatures/contract/:id", standardMiddleware.ThenFunc(app.signatureHandler.GetByContractID))
-	mux.Get("/signatures/company/:id", standardMiddleware.ThenFunc(app.signatureHandler.GetContractByCompanyID))
+	mux.Get("/signatures/company/:id", standardMiddleware.ThenFunc(app.signatureHandler.GetContractsByCompanyID))
 	mux.Del("/signatures/:id", standardMiddleware.ThenFunc(app.signatureHandler.Delete))
 	mux.Post("/signatures/sign", standardMiddleware.ThenFunc(app.signatureHandler.Sign))
 

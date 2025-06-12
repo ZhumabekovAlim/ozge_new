@@ -6,6 +6,7 @@ type Contract struct {
 	TemplateID       int    `json:"template_id"`
 	ContractToken    string `json:"contract_token"`
 	GeneratedPDFPath string `json:"generated_pdf_path"`
+	Method           string `json:"method"`
 	ClientFilled     bool   `json:"client_filled"`
 	CreatedAt        string `json:"created_at"`
 }
