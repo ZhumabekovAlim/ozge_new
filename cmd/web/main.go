@@ -42,10 +42,18 @@ func main() {
 
 	app := initializeApp(db, errorLog, infoLog)
 
+	//c := cors.New(cors.Options{
+	//	AllowedOrigins:   []string{"*"},
+	//	AllowedMethods:   []string{"GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+	//	AllowCredentials: true,
+	//	AllowedHeaders:   []string{"Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "Accept", "Origin", "Cache-Control", "X-Requested-With"},
+	//})
+
 	c := cors.New(cors.Options{
-		AllowedMethods:   []string{"GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
-		AllowedHeaders:   []string{"Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "Accept", "Origin", "Cache-Control", "X-Requested-With"},
 	})
 
 	srv := &http.Server{

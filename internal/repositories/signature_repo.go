@@ -14,10 +14,17 @@ func NewSignatureRepository(db *sql.DB) *SignatureRepository {
 	return &SignatureRepository{DB: db}
 }
 
-func (r *SignatureRepository) Create(s *models.Signature) error {
+func (r *SignatureRepository) Create(s *models.Signature) (int, error) {
 	query := `INSERT INTO signatures (contract_id, client_name, client_iin, client_phone, signed_at) VALUES (?, ?, ?, ?, NOW())`
-	_, err := r.DB.Exec(query, s.ContractID, s.ClientName, s.ClientIIN, s.ClientPhone)
-	return err
+	res, err := r.DB.Exec(query, s.ContractID, s.ClientName, s.ClientIIN, s.ClientPhone)
+	if err != nil {
+		return 0, err
+	}
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return int(id), nil
 }
 
 func (r *SignatureRepository) GetByID(id int) (*models.Signature, error) {
@@ -42,10 +49,10 @@ func (r *SignatureRepository) GetByContractID(contractID int) (*models.Signature
 
 func (r *SignatureRepository) GetContractsByCompanyID(companyID int) ([]models.Signature, error) {
 	query := `SELECT s.id, t.name, client_name, client_iin, signed_at, sign_file_path FROM signatures s
-				LEFT JOIN contracts c on c.id = s.contract_id
-				LEFT JOIN templates t on t.id = c.template_id
-				LEFT JOIN signature_field_values sfv on s.id = sfv.signature_id
-				WHERE c.company_id = ?`
+    LEFT JOIN contracts c on c.id = s.contract_id
+    LEFT JOIN templates t on t.id = c.template_id
+    LEFT JOIN signature_field_values sfv on s.id = sfv.signature_id
+    WHERE c.company_id = ?`
 
 	rows, err := r.DB.Query(query, companyID)
 	if err != nil {
@@ -72,5 +79,10 @@ func (r *SignatureRepository) GetContractsByCompanyID(companyID int) ([]models.S
 
 func (r *SignatureRepository) Delete(id int) error {
 	_, err := r.DB.Exec(`DELETE FROM signatures WHERE id = ?`, id)
+	return err
+}
+
+func (r *SignatureRepository) UpdateSignFilePath(signatureID int, path string) error {
+	_, err := r.DB.Exec("UPDATE signatures SET sign_file_path = ? WHERE id = ?", path, signatureID)
 	return err
 }

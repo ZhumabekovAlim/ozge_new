@@ -16,7 +16,7 @@ func NewPaymentRequestRepository(db *sql.DB) *PaymentRequestRepository {
 func (r *PaymentRequestRepository) Create(p *models.PaymentRequest) error {
 	query := `
 	INSERT INTO payment_requests (company_id, tariff_plan_id, sms_count, ecp_count, total_amount, status, payment_url, payment_ref)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?)	
 	`
 	_, err := r.DB.Exec(query, p.CompanyID, p.TariffPlanID, p.SMSCount, p.ECPCount, p.TotalAmount, p.Status, p.PaymentURL, p.PaymentRef)
 	return err

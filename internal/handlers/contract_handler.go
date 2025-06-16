@@ -4,9 +4,15 @@ import (
 	"OzgeContract/internal/models"
 	"OzgeContract/internal/services"
 	"encoding/json"
+	"fmt"
 	"github.com/google/uuid"
+	"github.com/jung-kurt/gofpdf"
+	"github.com/pdfcpu/pdfcpu/pkg/api"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"time"
 )
 
 type ContractHandler struct {
@@ -24,10 +30,51 @@ func (h *ContractHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	input.ContractToken = uuid.New().String()
-	if err := h.Service.Create(&input); err != nil {
+
+	// 1. Сохраняем контракт в базе (input.ID заполняется после Create)
+	err := h.Service.Create(&input)
+	if err != nil {
 		http.Error(w, "failed to create contract", http.StatusInternalServerError)
 		return
 	}
+
+	// 2. Создаём директорию для компании
+	contractsDir := fmt.Sprintf("uploads/contracts/company_%d", input.CompanyID)
+	if err := os.MkdirAll(contractsDir, 0755); err != nil {
+		http.Error(w, "cannot create directory", http.StatusInternalServerError)
+		return
+	}
+
+	// 3. Пути к файлам
+	mainPDF := input.GeneratedPDFPath // исходный PDF с ватермаркой
+	certPDF := filepath.Join(contractsDir, fmt.Sprintf("cert_%d.pdf", input.ID))
+	finalPDF := filepath.Join(contractsDir, fmt.Sprintf("final_%d.pdf", input.ID))
+
+	// 4. Имя компании (можешь получить из базы)
+	companyName := "Test Company"
+
+	// 5. Генерим страницу сертификата
+	if err := GenerateCertificatePDF(certPDF, companyName, time.Now()); err != nil {
+		http.Error(w, "certificate page error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// 6. Мержим основной PDF и сертификат
+	if err := api.MergeCreateFile([]string{mainPDF, certPDF}, finalPDF, false, nil); err != nil {
+		http.Error(w, "merge error: "+err.Error(), http.StatusInternalServerError)
+		_ = os.Remove(certPDF)
+		return
+	}
+
+	// 7. Удаляем временный сертификат
+	_ = os.Remove(certPDF)
+
+	// 8. Обновляем путь финального файла в контракте
+	input.GeneratedPDFPath = finalPDF
+	_ = h.Service.UpdatePDFPath(input.ID, finalPDF)
+
+	// 9. Вернём контракт с финальным путём
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(input)
 }
 
@@ -96,7 +143,6 @@ func (h *ContractHandler) CreateWithFields(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// собираем contract
 	contract := models.Contract{
 		CompanyID:        input.CompanyID,
 		TemplateID:       input.TemplateID,
@@ -106,7 +152,6 @@ func (h *ContractHandler) CreateWithFields(w http.ResponseWriter, r *http.Reques
 		ContractToken:    uuid.New().String(),
 	}
 
-	// собираем contract fields (без contract_id)
 	fields := make([]models.ContractField, 0)
 	for _, f := range input.Fields {
 		fields = append(fields, models.ContractField{
@@ -115,12 +160,59 @@ func (h *ContractHandler) CreateWithFields(w http.ResponseWriter, r *http.Reques
 		})
 	}
 
-	// вызываем сервис
+	// Создаём контракт и поля, contract.ID будет получен после сохранения
 	err := h.Service.CreateWithFields(&contract, fields)
 	if err != nil {
 		http.Error(w, "failed to create contract and fields", http.StatusInternalServerError)
 		return
 	}
-	// верни новый контракт + fields
+
+	// --- Создаём директорию для компании
+	contractsDir := fmt.Sprintf("uploads/contracts/company_%d", contract.CompanyID)
+	if err := os.MkdirAll(contractsDir, 0755); err != nil {
+		http.Error(w, "cannot create directory", http.StatusInternalServerError)
+		return
+	}
+
+	mainPDF := contract.GeneratedPDFPath
+	certPDF := filepath.Join(contractsDir, fmt.Sprintf("cert_%d.pdf", contract.ID))
+	finalPDF := filepath.Join(contractsDir, fmt.Sprintf("final_%d.pdf", contract.ID))
+
+	companyName := "Test Company"
+
+	if err := GenerateCertificatePDF(certPDF, companyName, time.Now()); err != nil {
+		http.Error(w, "certificate page error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := api.MergeCreateFile([]string{mainPDF, certPDF}, finalPDF, false, nil); err != nil {
+		http.Error(w, "merge error: "+err.Error(), http.StatusInternalServerError)
+		_ = os.Remove(certPDF)
+		return
+	}
+
+	_ = os.Remove(certPDF)
+
+	contract.GeneratedPDFPath = finalPDF
+	_ = h.Service.UpdatePDFPath(contract.ID, finalPDF)
+
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(contract)
+}
+
+func GenerateCertificatePDF(filename, companyName string, signedAt time.Time) error {
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.AddUTF8Font("DejaVu", "", "DejaVuSans.ttf")
+	pdf.SetFont("DejaVu", "", 20)
+	pdf.AddPage()
+	pdf.CellFormat(0, 20, "Сертификат онлайн подписания", "", 1, "C", false, 0, "")
+	pdf.Ln(10)
+	pdf.SetFont("DejaVu", "", 14)
+	pdf.SetXY(10, 40)
+	pdf.MultiCell(0, 10, fmt.Sprintf(
+		"Сторона 1\nИсполнитель: %s\nПодписан: %s",
+		companyName,
+		signedAt.Format("2006-01-02 15:04:05"),
+	), "", "L", false)
+	return pdf.OutputFileAndClose(filename)
 }

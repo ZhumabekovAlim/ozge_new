@@ -6,16 +6,28 @@ import (
 )
 
 type SignatureService struct {
-	Repo        *repositories.SignatureRepository
-	BalanceRepo *repositories.CompanyBalanceRepository
+	Repo         *repositories.SignatureRepository
+	BalanceRepo  *repositories.CompanyBalanceRepository
+	ContractRepo *repositories.ContractRepository
 }
 
-func NewSignatureService(repo *repositories.SignatureRepository) *SignatureService {
-
-	return &SignatureService{Repo: repo}
+func NewSignatureService(repo *repositories.SignatureRepository, contractRepo *repositories.ContractRepository) *SignatureService {
+	return &SignatureService{
+		Repo:         repo,
+		ContractRepo: contractRepo,
+	}
 }
 
-func (s *SignatureService) Create(sig *models.Signature) error {
+func (s *SignatureService) GetContractByID(id int) (*models.Contract, error) {
+	return s.ContractRepo.GetByID(id)
+}
+
+// Сохраняет путь к подписанному файлу
+func (s *SignatureService) UpdateSignFilePath(signatureID int, path string) error {
+	return s.Repo.UpdateSignFilePath(signatureID, path)
+}
+
+func (s *SignatureService) Create(sig *models.Signature) (int, error) {
 	return s.Repo.Create(sig)
 }
 
@@ -34,7 +46,7 @@ func (s *SignatureService) Delete(id int) error {
 	return s.Repo.Delete(id)
 }
 
-func (s *SignatureService) Sign(contractID int, clientName, clientIIN, clientPhone, method string, companyID int) error {
+func (s *SignatureService) Sign(contractID int, clientName, clientIIN, clientPhone, method string, companyID int) (int, error) {
 	signature := &models.Signature{
 		ContractID:  contractID,
 		ClientName:  clientName,
@@ -45,7 +57,7 @@ func (s *SignatureService) Sign(contractID int, clientName, clientIIN, clientPho
 
 	// Списать баланс
 	if err := s.BalanceRepo.SubtractSignature(companyID, method); err != nil {
-		return err
+		return 0, err
 	}
 
 	return s.Repo.Create(signature)

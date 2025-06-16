@@ -24,12 +24,12 @@ func (h *PaymentRequestHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.Service.Create(&input); err != nil {
-		http.Error(w, "create failed", http.StatusInternalServerError)
+		http.Error(w, "create failed: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	json.NewEncoder(w).Encode(input)
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(input)
 }
 
 func (h *PaymentRequestHandler) GetByID(w http.ResponseWriter, r *http.Request) {

@@ -15,8 +15,16 @@ func NewContractRepository(db *sql.DB) *ContractRepository {
 
 func (r *ContractRepository) Create(c *models.Contract) error {
 	query := `INSERT INTO contracts (company_id, template_id, contract_token, generated_file_path, client_filled, method, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())`
-	_, err := r.DB.Exec(query, c.CompanyID, c.TemplateID, c.ContractToken, c.GeneratedPDFPath, c.ClientFilled, c.Method)
-	return err
+	result, err := r.DB.Exec(query, c.CompanyID, c.TemplateID, c.ContractToken, c.GeneratedPDFPath, c.ClientFilled, c.Method)
+	if err != nil {
+		return err
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+	c.ID = int(id)
+	return nil
 }
 
 func (r *ContractRepository) GetByID(id int) (*models.Contract, error) {
@@ -85,5 +93,10 @@ func (r *ContractRepository) CreateTx(tx *sql.Tx, c *models.Contract) (int, erro
 func (r *ContractFieldRepository) CreateTx(tx *sql.Tx, field *models.ContractField) error {
 	query := `INSERT INTO contract_fields (contract_id, field_name, field_type) VALUES (?, ?, ?)`
 	_, err := tx.Exec(query, field.ContractID, field.FieldName, field.FieldType)
+	return err
+}
+
+func (r *ContractRepository) UpdatePDFPath(contractID int, path string) error {
+	_, err := r.DB.Exec(`UPDATE contracts SET generated_file_path=? WHERE id=?`, path, contractID)
 	return err
 }

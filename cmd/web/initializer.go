@@ -47,9 +47,9 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 
 	// Signatures
 	signatureRepo := repository.NewSignatureRepository(db)
-	signatureService := service.NewSignatureService(signatureRepo)
+	signatureService := service.NewSignatureService(signatureRepo, contractRepo)
 	signatureHandler := handlers.NewSignatureHandler(signatureService)
-	
+
 	contractFieldService := service.NewContractFieldService(contractFieldRepo)
 	contractFieldHandler := handlers.NewContractFieldHandler(contractFieldService)
 
@@ -70,7 +70,7 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 	tariffPlanHandler := handlers.NewTariffPlanHandler(tariffPlanService)
 
 	paymentRepo := repository.NewPaymentRequestRepository(db)
-	paymentService := service.NewPaymentRequestService(paymentRepo)
+	paymentService := service.NewPaymentRequestService(paymentRepo, tariffPlanRepo)
 	paymentHandler := handlers.NewPaymentRequestHandler(paymentService)
 
 	return &application{
@@ -117,9 +117,12 @@ func openDB(dsn string) (*sql.DB, error) {
 
 func addSecurityHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
-		w.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
-		w.Header().Set("Cross-Origin-Resource-Policy", "same-origin")
+		//w.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
+		//w.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
+		//w.Header().Set("Cross-Origin-Resource-Policy", "same-origin")
+
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
 		next.ServeHTTP(w, r)
 	})
 }

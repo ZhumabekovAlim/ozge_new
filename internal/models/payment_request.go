@@ -8,10 +8,10 @@ type PaymentRequest struct {
 	TariffPlanID *int       `json:"tariff_plan_id,omitempty"`
 	SMSCount     int        `json:"sms_count"`
 	ECPCount     int        `json:"ecp_count"`
-	TotalAmount  float64    `json:"total_amount"`
-	Status       string     `json:"status"`
-	PaymentURL   string     `json:"payment_url"`
-	PaymentRef   string     `json:"payment_ref"`
+	TotalAmount  float64    `json:"total_amount,omitempty"`
+	Status       string     `json:"status,omitempty"`
+	PaymentURL   string     `json:"payment_url,omitempty"`
+	PaymentRef   string     `json:"payment_ref,omitempty"`
 	CreatedAt    time.Time  `json:"created_at"`
 	PaidAt       *time.Time `json:"paid_at,omitempty"`
 }

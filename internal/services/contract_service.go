@@ -71,3 +71,7 @@ func (s *ContractService) CreateWithFields(c *models.Contract, fields []models.C
 	}
 	return tx.Commit()
 }
+
+func (s *ContractService) UpdatePDFPath(contractID int, path string) error {
+	return s.Repo.UpdatePDFPath(contractID, path)
+}
