@@ -5,12 +5,7 @@ import (
 	"OzgeContract/internal/services"
 	"encoding/json"
 	"fmt"
-	"github.com/pdfcpu/pdfcpu/pkg/api"
-	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu"
-	_ "github.com/pdfcpu/pdfcpu/pkg/pdfcpu"
-	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
-	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/types"
-	"github.com/skip2/go-qrcode"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -27,13 +22,20 @@ func NewSignatureHandler(service *services.SignatureService) *SignatureHandler {
 }
 
 func (h *SignatureHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var input models.Signature
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "invalid input", http.StatusBadRequest)
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "invalid form", http.StatusBadRequest)
 		return
 	}
 
-	// Создание в базе
+	contractID, _ := strconv.Atoi(r.FormValue("contract_id"))
+	input := models.Signature{
+		ContractID:  contractID,
+		ClientName:  r.FormValue("client_name"),
+		ClientIIN:   r.FormValue("client_iin"),
+		ClientPhone: r.FormValue("client_phone"),
+		Method:      r.FormValue("method"),
+	}
+
 	newID, err := h.Service.Create(&input)
 	if err != nil {
 		http.Error(w, "failed to create signature", http.StatusInternalServerError)
@@ -41,80 +43,42 @@ func (h *SignatureHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	input.ID = newID
 
-	// Получение контракта
 	contract, err := h.Service.GetContractByID(input.ContractID)
 	if err != nil {
 		http.Error(w, "contract not found", http.StatusNotFound)
 		return
 	}
-	contractPDF := contract.GeneratedPDFPath
 
-	// Каталог для файлов
 	signDir := fmt.Sprintf("uploads/signatures/company_%d", contract.CompanyID)
 	if err := os.MkdirAll(signDir, 0755); err != nil {
 		http.Error(w, "cannot create directory", http.StatusInternalServerError)
 		return
 	}
 
-	// Генерация QR
 	signedPDF := filepath.Join(signDir, fmt.Sprintf("signed_final_%d.pdf", input.ID))
-	qrPath := filepath.Join(signDir, fmt.Sprintf("qr_%d.png", input.ID))
-
-	// ⬇️ ссылка на просмотр по ID
-	qrContent := fmt.Sprintf("http://192.168.8.2:4000/signatures/pdf/%d", input.ID)
-
-	err = qrcode.WriteFile(qrContent, qrcode.Medium, 256, qrPath)
+	file, _, err := r.FormFile("file")
 	if err != nil {
-		http.Error(w, "QR generation error", http.StatusInternalServerError)
+		http.Error(w, "file required", http.StatusBadRequest)
 		return
 	}
-	defer os.Remove(qrPath)
-	err = qrcode.WriteFile(qrContent, qrcode.Medium, 256, qrPath)
+	defer file.Close()
+
+	out, err := os.Create(signedPDF)
 	if err != nil {
-		http.Error(w, "QR generation error", http.StatusInternalServerError)
+		http.Error(w, "cannot save file", http.StatusInternalServerError)
 		return
 	}
-	defer os.Remove(qrPath)
-
-	// Добавление QR в PDF
-	err = AddQRToPDF(contractPDF, signedPDF, qrPath)
-	if err != nil {
-		http.Error(w, "failed to insert QR: "+err.Error(), http.StatusInternalServerError)
+	defer out.Close()
+	if _, err := io.Copy(out, file); err != nil {
+		http.Error(w, "write failed", http.StatusInternalServerError)
 		return
 	}
 
-	// Обновление пути
 	input.SignFilePath = signedPDF
 	_ = h.Service.UpdateSignFilePath(input.ID, signedPDF)
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(input)
-}
-
-func AddQRToPDF(inputPDF, outputPDF, qrImagePath string) error {
-	conf := model.NewDefaultConfiguration()
-
-	// 1. Узнаем количество страниц в PDF
-	ctx, err := api.ReadContextFile(inputPDF)
-	if err != nil {
-		return fmt.Errorf("failed to read PDF context: %w", err)
-	}
-	totalPages := ctx.PageCount
-	lastPage := fmt.Sprintf("%d", totalPages)
-
-	// 2. Подготавливаем QR watermark
-	wm, err := pdfcpu.ParseImageWatermarkDetails(
-		qrImagePath,
-		"pos:tr, scale:0.2, rot:0, offset:-10 -100",
-		true, // onTop
-		types.POINTS,
-	)
-	if err != nil {
-		return fmt.Errorf("watermark parse error: %w", err)
-	}
-
-	// 3. Добавляем на последнюю страницу
-	return api.AddWatermarksFile(inputPDF, outputPDF, []string{lastPage}, wm, conf)
 }
 
 func (h *SignatureHandler) GetByID(w http.ResponseWriter, r *http.Request) {
