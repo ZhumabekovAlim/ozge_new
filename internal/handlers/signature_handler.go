@@ -155,6 +155,15 @@ func (h *SignatureHandler) GetContractsByCompanyID(w http.ResponseWriter, r *htt
 	json.NewEncoder(w).Encode(sigs)
 }
 
+func (h *SignatureHandler) GetSignaturesAll(w http.ResponseWriter, r *http.Request) {
+	sigs, err := h.Service.GetSignaturesAll()
+	if err != nil {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+	json.NewEncoder(w).Encode(sigs)
+}
+
 func (h *SignatureHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get(":id")
 	id, _ := strconv.Atoi(idStr)

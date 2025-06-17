@@ -42,6 +42,10 @@ func (s *SignatureService) GetContractsByCompanyID(companyID int) ([]models.Sign
 	return s.Repo.GetContractsByCompanyID(companyID)
 }
 
+func (s *SignatureService) GetSignaturesAll() ([]models.Signature, error) {
+	return s.Repo.GetSignaturesAll()
+}
+
 func (s *SignatureService) Delete(id int) error {
 	return s.Repo.Delete(id)
 }

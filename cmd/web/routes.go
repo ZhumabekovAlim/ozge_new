@@ -41,6 +41,7 @@ func (app *application) routes() http.Handler {
 	mux.Get("/signatures/:id", standardMiddleware.ThenFunc(app.signatureHandler.GetByID))
 	mux.Get("/signatures/contract/:id", standardMiddleware.ThenFunc(app.signatureHandler.GetByContractID))
 	mux.Get("/signatures/company/:id", standardMiddleware.ThenFunc(app.signatureHandler.GetContractsByCompanyID))
+	mux.Get("/signatures/admin/all", standardMiddleware.ThenFunc(app.signatureHandler.GetSignaturesAll))
 	mux.Del("/signatures/:id", standardMiddleware.ThenFunc(app.signatureHandler.Delete))
 	mux.Post("/signatures/sign", standardMiddleware.ThenFunc(app.signatureHandler.Sign))
 	mux.Get("/signatures/pdf/:id", standardMiddleware.ThenFunc(app.signatureHandler.ServeSignedPDFByID))
@@ -67,6 +68,7 @@ func (app *application) routes() http.Handler {
 	mux.Post("/payment_requests", standardMiddleware.ThenFunc(app.paymentHandler.Create))
 	mux.Get("/payment_requests/:id", standardMiddleware.ThenFunc(app.paymentHandler.GetByID))
 	mux.Get("/payment_requests/company/:id", standardMiddleware.ThenFunc(app.paymentHandler.GetByCompany))
+	mux.Get("/payment_requests/admin/all", standardMiddleware.ThenFunc(app.paymentHandler.GetAll))
 	mux.Put("/payment_requests/:id", standardMiddleware.ThenFunc(app.paymentHandler.Update))
 	mux.Del("/payment_requests/:id", standardMiddleware.ThenFunc(app.paymentHandler.Delete))
 

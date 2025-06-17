@@ -3,6 +3,7 @@ package services
 import (
 	"OzgeContract/internal/models"
 	"OzgeContract/internal/repositories"
+	"context"
 	"errors"
 )
 
@@ -97,6 +98,10 @@ func (s *PaymentRequestService) GetByID(id int) (*models.PaymentRequest, error) 
 
 func (s *PaymentRequestService) GetByCompany(companyID int) ([]models.PaymentRequest, error) {
 	return s.Repo.GetByCompany(companyID)
+}
+
+func (s *PaymentRequestService) GetAll(ctx context.Context) ([]models.PaymentRequest, error) {
+	return s.Repo.GetAll(ctx)
 }
 
 func (s *PaymentRequestService) Update(p *models.PaymentRequest) error {

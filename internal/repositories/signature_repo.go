@@ -77,6 +77,54 @@ func (r *SignatureRepository) GetContractsByCompanyID(companyID int) ([]models.S
 	return signatures, nil
 }
 
+func (r *SignatureRepository) GetSignaturesAll() ([]models.Signature, error) {
+	query := `
+		SELECT 
+			s.id, 
+			t.name, 
+			s.client_name, 
+			s.client_iin, 
+			s.signed_at, 
+			s.sign_file_path,
+			co.name 
+		FROM signatures s
+		LEFT JOIN contracts c ON c.id = s.contract_id
+		LEFT JOIN templates t ON t.id = c.template_id
+		LEFT JOIN signature_field_values sfv ON s.id = sfv.signature_id
+		LEFT JOIN companies co ON c.company_id = co.id
+	`
+
+	rows, err := r.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var signatures []models.Signature
+	for rows.Next() {
+		var s models.Signature
+		err := rows.Scan(
+			&s.ID,
+			&s.TemplateName,
+			&s.ClientName,
+			&s.ClientIIN,
+			&s.SignedAt,
+			&s.SignFilePath,
+			&s.CompanyName,
+		)
+		if err != nil {
+			return nil, err
+		}
+		signatures = append(signatures, s)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return signatures, nil
+}
+
 func (r *SignatureRepository) Delete(id int) error {
 	_, err := r.DB.Exec(`DELETE FROM signatures WHERE id = ?`, id)
 	return err

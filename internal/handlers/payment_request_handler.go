@@ -4,6 +4,7 @@ import (
 	"OzgeContract/internal/models"
 	"OzgeContract/internal/services"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -52,8 +53,21 @@ func (h *PaymentRequestHandler) GetByCompany(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "fetch failed", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(list) // статус 200 по умолчанию
+}
+
+func (h *PaymentRequestHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	list, err := h.Service.GetAll(r.Context())
+	if err != nil {
+		log.Printf("handler error: %v", err)
+		http.Error(w, "fetch failed: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("returning %d payment requests", len(list)) // добавь
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(list)
-	w.WriteHeader(http.StatusOK)
 }
 
 func (h *PaymentRequestHandler) Update(w http.ResponseWriter, r *http.Request) {

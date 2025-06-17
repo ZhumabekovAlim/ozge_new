@@ -2,7 +2,10 @@ package repositories
 
 import (
 	"OzgeContract/internal/models"
+	"context"
 	"database/sql"
+	"fmt"
+	"log"
 )
 
 type PaymentRequestRepository struct {
@@ -56,6 +59,46 @@ func (r *PaymentRequestRepository) GetByCompany(companyID int) ([]models.Payment
 		}
 		list = append(list, p)
 	}
+	return list, nil
+}
+
+func (r *PaymentRequestRepository) GetAll(ctx context.Context) ([]models.PaymentRequest, error) {
+	query := `
+		SELECT 
+			id, company_id, tariff_plan_id, sms_count, ecp_count, 
+			total_amount, status, payment_url, payment_ref, 
+			created_at, paid_at
+		FROM payment_requests
+		ORDER BY created_at DESC
+	`
+
+	rows, err := r.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute query: %w", err)
+	}
+	defer rows.Close()
+
+	var list []models.PaymentRequest
+	for rows.Next() {
+		var p models.PaymentRequest
+		err := rows.Scan(
+			&p.ID, &p.CompanyID, &p.TariffPlanID, &p.SMSCount, &p.ECPCount,
+			&p.TotalAmount, &p.Status, &p.PaymentURL, &p.PaymentRef,
+			&p.CreatedAt, &p.PaidAt,
+		)
+		if err != nil {
+			log.Printf("scan error: %v", err)
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+		list = append(list, p)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("row iteration error: %w", err)
+	}
+
+	log.Printf("fetched %d payment requests", len(list))
+
 	return list, nil
 }
 

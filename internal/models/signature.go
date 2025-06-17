@@ -11,4 +11,5 @@ type Signature struct {
 	Status       int    `json:"status"`
 	SignFilePath string `json:"sign_file_path,omitempty"`
 	TemplateName string `json:"template_name,omitempty"`
+	CompanyName  string `json:"company_name,omitempty"`
 }
