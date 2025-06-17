@@ -29,8 +29,8 @@ func (r *SignatureRepository) Create(s *models.Signature) (int, error) {
 
 func (r *SignatureRepository) GetByID(id int) (*models.Signature, error) {
 	var s models.Signature
-	query := `SELECT id, contract_id, client_name, client_iin, client_phone, signed_at FROM signatures WHERE id = ?`
-	err := r.DB.QueryRow(query, id).Scan(&s.ID, &s.ContractID, &s.ClientName, &s.ClientIIN, &s.ClientPhone, &s.SignedAt)
+	query := `SELECT id, contract_id, client_name, client_iin, client_phone, signed_at, sign_file_path FROM signatures WHERE id = ?`
+	err := r.DB.QueryRow(query, id).Scan(&s.ID, &s.ContractID, &s.ClientName, &s.ClientIIN, &s.ClientPhone, &s.SignedAt, &s.SignFilePath)
 	if err != nil {
 		return nil, err
 	}
