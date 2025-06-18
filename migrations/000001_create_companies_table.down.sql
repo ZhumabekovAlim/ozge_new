@@ -1,1 +1,1 @@
-DROP TABLE companies;
+DROP TABLE IF EXISTS companies;

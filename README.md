@@ -81,6 +81,21 @@ migrate -path db/migrations -database "your-database-url" up
 
 ---
 
+## 🐳 Docker Usage
+
+The project includes a `Dockerfile` and `docker-compose.yml` for local
+development and deployment. To build the containers and run the application
+with MySQL:
+
+```bash
+docker-compose up --build
+```
+
+This command starts a MySQL server, applies the migrations using the
+`migrate` image and launches the Go application on port `4000`.
+
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps:

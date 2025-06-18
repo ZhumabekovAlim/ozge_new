@@ -3,4 +3,7 @@ server:
 
 database:
   driver: "mysql"
-  url: "root:@tcp(localhost:3306)/ozge_contract?parseTime=true"
+  # Database connection string used by the application.
+  # When running via docker-compose the hostname of the MySQL container
+  # is `db` and the default root password is `password`.
+  url: "root:password@tcp(db:3306)/ozge_contract?parseTime=true"

@@ -1,0 +1,32 @@
+version: '3.9'
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: ozge_contract
+    volumes:
+      - db-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+  migrate:
+    image: migrate/migrate
+    depends_on:
+      - db
+    volumes:
+      - ./migrations:/migrations
+    command: ["-path", "/migrations", "-database", "mysql://root:password@tcp(db:3306)/ozge_contract?parseTime=true", "up"]
+
+  app:
+    build: .
+    depends_on:
+      - db
+      - migrate
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: "4000"
+volumes:
+  db-data:

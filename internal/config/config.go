@@ -22,7 +22,9 @@ func LoadConfig() Config {
 	var cfg Config
 
 	// Read config file
-	data, err := os.ReadFile("C:\\Users\\alimz\\GolandProjects\\OzgeContract\\config\\config.yaml")
+	// Read configuration from the relative path so the application can run
+	// both locally and inside a Docker container.
+	data, err := os.ReadFile("config/config.yaml")
 	if err != nil {
 		log.Fatalf("Failed to read config file: %v", err)
 	}
