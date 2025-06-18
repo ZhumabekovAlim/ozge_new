@@ -20,7 +20,7 @@ func (r *TariffPlanRepository) Create(tp *models.TariffPlan) error {
 }
 
 func (r *TariffPlanRepository) GetAll() ([]models.TariffPlan, error) {
-	rows, err := r.DB.Query(`SELECT id, name, discount, from_count, to_count, is_active, created_at FROM tariff_plans WHERE is_active = true`)
+	rows, err := r.DB.Query(`SELECT id, name, discount, from_count, to_count, is_active, created_at FROM tariff_plans`)
 	if err != nil {
 		return nil, err
 	}

@@ -81,12 +81,16 @@ func (r *SignatureRepository) GetSignaturesAll() ([]models.Signature, error) {
 	query := `
 		SELECT 
 			s.id, 
+			contract_id,
 			t.name, 
 			s.client_name, 
 			s.client_iin, 
+			s.client_phone,
+			s.method,
+			status,
 			s.signed_at, 
 			s.sign_file_path,
-			co.name 
+			co.name
 		FROM signatures s
 		LEFT JOIN contracts c ON c.id = s.contract_id
 		LEFT JOIN templates t ON t.id = c.template_id
@@ -105,9 +109,13 @@ func (r *SignatureRepository) GetSignaturesAll() ([]models.Signature, error) {
 		var s models.Signature
 		err := rows.Scan(
 			&s.ID,
+			&s.ContractID,
 			&s.TemplateName,
 			&s.ClientName,
 			&s.ClientIIN,
+			&s.ClientPhone,
+			&s.Method,
+			&s.Status,
 			&s.SignedAt,
 			&s.SignFilePath,
 			&s.CompanyName,
