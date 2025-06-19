@@ -130,8 +130,15 @@ func (r *CompanyRepository) FindByPhone(phone string) (*models.Company, error) {
 	return &c, nil
 }
 
-func (r *CompanyRepository) FindAll() ([]models.Company, error) {
-	rows, err := r.DB.Query(`SELECT id, name, email, phone FROM companies`)
+func (r *CompanyRepository) FindAfter(cursorID int, limit int) ([]models.Company, error) {
+	query := `
+		SELECT id, name, email, phone
+		FROM companies
+		WHERE id > ?
+		ORDER BY id ASC
+		LIMIT ?
+	`
+	rows, err := r.DB.Query(query, cursorID, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -140,8 +147,7 @@ func (r *CompanyRepository) FindAll() ([]models.Company, error) {
 	var companies []models.Company
 	for rows.Next() {
 		var c models.Company
-		err := rows.Scan(&c.ID, &c.Name, &c.Email, &c.Phone)
-		if err != nil {
+		if err := rows.Scan(&c.ID, &c.Name, &c.Email, &c.Phone); err != nil {
 			return nil, err
 		}
 		companies = append(companies, c)

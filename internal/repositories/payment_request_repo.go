@@ -62,17 +62,19 @@ func (r *PaymentRequestRepository) GetByCompany(companyID int) ([]models.Payment
 	return list, nil
 }
 
-func (r *PaymentRequestRepository) GetAll(ctx context.Context) ([]models.PaymentRequest, error) {
+func (r *PaymentRequestRepository) GetAll(ctx context.Context, cursorID, limit int) ([]models.PaymentRequest, error) {
 	query := `
 		SELECT 
 			id, company_id, tariff_plan_id, sms_count, ecp_count, 
 			total_amount, status, payment_url, payment_ref, 
 			created_at, paid_at
 		FROM payment_requests
-		ORDER BY created_at DESC
+		WHERE id < ?
+		ORDER BY id DESC
+		LIMIT ?
 	`
 
-	rows, err := r.DB.QueryContext(ctx, query)
+	rows, err := r.DB.QueryContext(ctx, query, cursorID, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute query: %w", err)
 	}

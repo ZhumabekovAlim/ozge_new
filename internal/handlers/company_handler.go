@@ -57,12 +57,43 @@ func (h *CompanyHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 // GET /companies
 func (h *CompanyHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	companies, err := h.Service.List()
+	query := r.URL.Query()
+
+	cursorStr := query.Get("cursor")
+	limitStr := query.Get("limit")
+
+	cursorID := 0
+	limit := 10
+
+	if cursorStr != "" {
+		if id, err := strconv.Atoi(cursorStr); err == nil {
+			cursorID = id
+		}
+	}
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil {
+			limit = l
+		}
+	}
+
+	companies, err := h.Service.ListAfter(cursorID, limit)
 	if err != nil {
 		http.Error(w, "cannot get companies", http.StatusInternalServerError)
 		return
 	}
-	json.NewEncoder(w).Encode(companies)
+
+	var nextCursor int
+	if len(companies) > 0 {
+		nextCursor = companies[len(companies)-1].ID
+	}
+
+	response := map[string]interface{}{
+		"data":        companies,
+		"next_cursor": nextCursor,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
 // GET /companies/id/:id

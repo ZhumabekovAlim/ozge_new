@@ -58,16 +58,42 @@ func (h *PaymentRequestHandler) GetByCompany(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *PaymentRequestHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	list, err := h.Service.GetAll(r.Context())
+	query := r.URL.Query()
+
+	cursorID := int(^uint(0) >> 1) // max int
+	limit := 20
+
+	if cursorStr := query.Get("cursor"); cursorStr != "" {
+		if c, err := strconv.Atoi(cursorStr); err == nil {
+			cursorID = c
+		}
+	}
+
+	if limitStr := query.Get("limit"); limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil {
+			limit = l
+		}
+	}
+
+	list, err := h.Service.GetAll(r.Context(), cursorID, limit)
 	if err != nil {
 		log.Printf("handler error: %v", err)
 		http.Error(w, "fetch failed: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("returning %d payment requests", len(list)) // добавь
+	var nextCursor int
+	if len(list) > 0 {
+		nextCursor = list[len(list)-1].ID
+	}
+
+	log.Printf("returning %d payment requests", len(list))
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(list)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"data":        list,
+		"next_cursor": nextCursor,
+	})
 }
 
 func (h *PaymentRequestHandler) Update(w http.ResponseWriter, r *http.Request) {

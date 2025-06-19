@@ -77,7 +77,7 @@ func (r *SignatureRepository) GetContractsByCompanyID(companyID int) ([]models.S
 	return signatures, nil
 }
 
-func (r *SignatureRepository) GetSignaturesAll() ([]models.Signature, error) {
+func (r *SignatureRepository) GetSignaturesAll(cursorID int, limit int) ([]models.Signature, error) {
 	query := `
 		SELECT 
 			s.id, 
@@ -96,9 +96,12 @@ func (r *SignatureRepository) GetSignaturesAll() ([]models.Signature, error) {
 		LEFT JOIN templates t ON t.id = c.template_id
 		LEFT JOIN signature_field_values sfv ON s.id = sfv.signature_id
 		LEFT JOIN companies co ON c.company_id = co.id
+		WHERE s.id > ?
+		ORDER BY s.id ASC
+		LIMIT ?
 	`
 
-	rows, err := r.DB.Query(query)
+	rows, err := r.DB.Query(query, cursorID, limit)
 	if err != nil {
 		return nil, err
 	}

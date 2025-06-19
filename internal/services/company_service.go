@@ -21,10 +21,9 @@ func (s *CompanyService) Login(login, password string) (models.Company, error) {
 	return s.Repo.LogIn(login, password)
 }
 
-func (s *CompanyService) List() ([]models.Company, error) {
-	return s.Repo.FindAll()
+func (s *CompanyService) ListAfter(cursorID, limit int) ([]models.Company, error) {
+	return s.Repo.FindAfter(cursorID, limit)
 }
-
 func (s *CompanyService) GetByID(id int) (*models.Company, error) {
 	return s.Repo.FindByID(id)
 }

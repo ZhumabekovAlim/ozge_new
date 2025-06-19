@@ -100,8 +100,8 @@ func (s *PaymentRequestService) GetByCompany(companyID int) ([]models.PaymentReq
 	return s.Repo.GetByCompany(companyID)
 }
 
-func (s *PaymentRequestService) GetAll(ctx context.Context) ([]models.PaymentRequest, error) {
-	return s.Repo.GetAll(ctx)
+func (s *PaymentRequestService) GetAll(ctx context.Context, cursorID, limit int) ([]models.PaymentRequest, error) {
+	return s.Repo.GetAll(ctx, cursorID, limit)
 }
 
 func (s *PaymentRequestService) Update(p *models.PaymentRequest) error {

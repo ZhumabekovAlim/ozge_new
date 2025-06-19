@@ -120,12 +120,44 @@ func (h *SignatureHandler) GetContractsByCompanyID(w http.ResponseWriter, r *htt
 }
 
 func (h *SignatureHandler) GetSignaturesAll(w http.ResponseWriter, r *http.Request) {
-	sigs, err := h.Service.GetSignaturesAll()
+	query := r.URL.Query()
+
+	cursorStr := query.Get("cursor")
+	limitStr := query.Get("limit")
+
+	cursorID := 0
+	limit := 20
+
+	if cursorStr != "" {
+		if id, err := strconv.Atoi(cursorStr); err == nil {
+			cursorID = id
+		}
+	}
+
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil {
+			limit = l
+		}
+	}
+
+	sigs, err := h.Service.GetSignaturesAll(cursorID, limit)
 	if err != nil {
 		http.Error(w, "not found", http.StatusNotFound)
 		return
 	}
-	json.NewEncoder(w).Encode(sigs)
+
+	var nextCursor int
+	if len(sigs) > 0 {
+		nextCursor = sigs[len(sigs)-1].ID
+	}
+
+	response := map[string]interface{}{
+		"data":        sigs,
+		"next_cursor": nextCursor,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *SignatureHandler) Delete(w http.ResponseWriter, r *http.Request) {
