@@ -22,6 +22,7 @@ func main() {
 		port = ":" + port
 	} else {
 		port = ":4000"
+
 	}
 
 	addr := flag.String("addr", port, "HTTP network address")
