@@ -14,6 +14,8 @@ type PaymentRequestService struct {
 	TariffRepo *repositories.TariffPlanRepository
 }
 
+type PaymentRequestListOptions = repositories.PaymentRequestQueryOptions
+
 func NewPaymentRequestService(
 	repo *repositories.PaymentRequestRepository,
 	tariffRepo *repositories.TariffPlanRepository,
@@ -100,8 +102,8 @@ func (s *PaymentRequestService) GetByCompany(companyID int) ([]models.PaymentReq
 	return s.Repo.GetByCompany(companyID)
 }
 
-func (s *PaymentRequestService) GetAll(ctx context.Context, cursorID, limit int) ([]models.PaymentRequest, error) {
-	return s.Repo.GetAll(ctx, cursorID, limit)
+func (s *PaymentRequestService) GetAll(ctx context.Context, opts PaymentRequestListOptions) ([]models.PaymentRequest, error) {
+	return s.Repo.GetAll(ctx, opts)
 }
 
 func (s *PaymentRequestService) Update(p *models.PaymentRequest) error {

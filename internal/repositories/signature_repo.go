@@ -4,10 +4,21 @@ import (
 	"OzgeContract/internal/models"
 	"database/sql"
 	_ "fmt"
+	"strings"
 )
 
 type SignatureRepository struct {
 	DB *sql.DB
+}
+
+type SignatureQueryOptions struct {
+	Search   string
+	Status   *int
+	Method   string
+	SortBy   string
+	Order    string
+	CursorID int
+	Limit    int
 }
 
 func NewSignatureRepository(db *sql.DB) *SignatureRepository {
@@ -77,31 +88,72 @@ func (r *SignatureRepository) GetContractsByCompanyID(companyID int) ([]models.S
 	return signatures, nil
 }
 
-func (r *SignatureRepository) GetSignaturesAll(cursorID int, limit int) ([]models.Signature, error) {
+func (r *SignatureRepository) GetSignaturesAll(opts SignatureQueryOptions) ([]models.Signature, error) {
 	query := `
-		SELECT 
-			s.id, 
-			contract_id,
-			t.name, 
-			s.client_name, 
-			s.client_iin, 
-			s.client_phone,
-			s.method,
-			status,
-			s.signed_at, 
-			s.sign_file_path,
-			co.name
-		FROM signatures s
-		LEFT JOIN contracts c ON c.id = s.contract_id
-		LEFT JOIN templates t ON t.id = c.template_id
-		LEFT JOIN signature_field_values sfv ON s.id = sfv.signature_id
-		LEFT JOIN companies co ON c.company_id = co.id
-		WHERE s.id > ?
-		ORDER BY s.id ASC
-		LIMIT ?
-	`
+                SELECT
+                        s.id,
+                        contract_id,
+                        t.name,
+                        s.client_name,
+                        s.client_iin,
+                        s.client_phone,
+                        s.method,
+                        status,
+                        s.signed_at,
+                        s.sign_file_path,
+                        co.name
+                FROM signatures s
+                LEFT JOIN contracts c ON c.id = s.contract_id
+                LEFT JOIN templates t ON t.id = c.template_id
+                LEFT JOIN signature_field_values sfv ON s.id = sfv.signature_id
+                LEFT JOIN companies co ON c.company_id = co.id
+                WHERE s.id >= ?`
+	args := []interface{}{opts.CursorID}
 
-	rows, err := r.DB.Query(query, cursorID, limit)
+	if opts.Search != "" {
+		s := "%" + opts.Search + "%"
+		query += ` AND (
+                        CAST(s.id AS CHAR) LIKE ? OR
+                        s.client_name LIKE ? OR
+                        s.client_phone LIKE ? OR
+                        t.name LIKE ? OR
+                        co.name LIKE ? OR
+                        s.method LIKE ? OR
+                        CAST(status AS CHAR) LIKE ? OR
+                        DATE_FORMAT(s.signed_at, '%Y-%m-%d') LIKE ?
+                )`
+		args = append(args, s, s, s, s, s, s, s, s)
+	}
+	if opts.Status != nil {
+		query += " AND status = ?"
+		args = append(args, *opts.Status)
+	}
+	if opts.Method != "" {
+		query += " AND s.method = ?"
+		args = append(args, opts.Method)
+	}
+
+	orderBy := "s.id"
+	switch opts.SortBy {
+	case "client_name":
+		orderBy = "s.client_name"
+	case "signed_at":
+		orderBy = "s.signed_at"
+	}
+
+	order := "ASC"
+	if strings.ToUpper(opts.Order) == "DESC" {
+		order = "DESC"
+	}
+
+	if opts.Limit == 0 {
+		opts.Limit = 20
+	}
+
+	query += " ORDER BY " + orderBy + " " + order + " LIMIT ?"
+	args = append(args, opts.Limit)
+
+	rows, err := r.DB.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

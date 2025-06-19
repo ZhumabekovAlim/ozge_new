@@ -122,25 +122,38 @@ func (h *SignatureHandler) GetContractsByCompanyID(w http.ResponseWriter, r *htt
 func (h *SignatureHandler) GetSignaturesAll(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
-	cursorStr := query.Get("cursor")
-	limitStr := query.Get("limit")
+	opts := services.SignatureListOptions{}
 
-	cursorID := 0
-	limit := 20
-
-	if cursorStr != "" {
+	if cursorStr := query.Get("cursor"); cursorStr != "" {
 		if id, err := strconv.Atoi(cursorStr); err == nil {
-			cursorID = id
+			opts.CursorID = id
 		}
 	}
 
-	if limitStr != "" {
+	if limitStr := query.Get("limit"); limitStr != "" {
 		if l, err := strconv.Atoi(limitStr); err == nil {
-			limit = l
+			opts.Limit = l
 		}
 	}
+	if opts.Limit == 0 {
+		opts.Limit = 20
+	}
 
-	sigs, err := h.Service.GetSignaturesAll(cursorID, limit)
+	if search := query.Get("search"); search != "" {
+		opts.Search = search
+	}
+	if statusStr := query.Get("status"); statusStr != "" {
+		if st, err := strconv.Atoi(statusStr); err == nil {
+			opts.Status = &st
+		}
+	}
+	if method := query.Get("method"); method != "" {
+		opts.Method = method
+	}
+	opts.SortBy = query.Get("sort")
+	opts.Order = query.Get("order")
+
+	sigs, err := h.Service.GetSignaturesAll(opts)
 	if err != nil {
 		http.Error(w, "not found", http.StatusNotFound)
 		return

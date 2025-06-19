@@ -11,6 +11,8 @@ type SignatureService struct {
 	ContractRepo *repositories.ContractRepository
 }
 
+type SignatureListOptions = repositories.SignatureQueryOptions
+
 func NewSignatureService(repo *repositories.SignatureRepository, contractRepo *repositories.ContractRepository) *SignatureService {
 	return &SignatureService{
 		Repo:         repo,
@@ -42,8 +44,8 @@ func (s *SignatureService) GetContractsByCompanyID(companyID int) ([]models.Sign
 	return s.Repo.GetContractsByCompanyID(companyID)
 }
 
-func (s *SignatureService) GetSignaturesAll(cursorID, limit int) ([]models.Signature, error) {
-	return s.Repo.GetSignaturesAll(cursorID, limit)
+func (s *SignatureService) GetSignaturesAll(opts SignatureListOptions) ([]models.Signature, error) {
+	return s.Repo.GetSignaturesAll(opts)
 }
 
 func (s *SignatureService) Delete(id int) error {

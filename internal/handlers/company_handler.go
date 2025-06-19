@@ -59,24 +59,42 @@ func (h *CompanyHandler) Login(w http.ResponseWriter, r *http.Request) {
 func (h *CompanyHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
-	cursorStr := query.Get("cursor")
-	limitStr := query.Get("limit")
+	opts := services.CompanyListOptions{}
 
-	cursorID := 0
-	limit := 10
-
-	if cursorStr != "" {
+	if cursorStr := query.Get("cursor"); cursorStr != "" {
 		if id, err := strconv.Atoi(cursorStr); err == nil {
-			cursorID = id
-		}
-	}
-	if limitStr != "" {
-		if l, err := strconv.Atoi(limitStr); err == nil {
-			limit = l
+			opts.CursorID = id
 		}
 	}
 
-	companies, err := h.Service.ListAfter(cursorID, limit)
+	if limitStr := query.Get("limit"); limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil {
+			opts.Limit = l
+		}
+	}
+	if opts.Limit == 0 {
+		opts.Limit = 10
+	}
+
+	if search := query.Get("search"); search != "" {
+		opts.Search = search
+	}
+	if idStr := query.Get("id"); idStr != "" {
+		if id, err := strconv.Atoi(idStr); err == nil {
+			opts.FilterID = &id
+		}
+	}
+	if name := query.Get("name"); name != "" {
+		opts.FilterName = name
+	}
+	if email := query.Get("email"); email != "" {
+		opts.FilterEmail = email
+	}
+
+	opts.SortBy = query.Get("sort")
+	opts.Order = query.Get("order")
+
+	companies, err := h.Service.List(opts)
 	if err != nil {
 		http.Error(w, "cannot get companies", http.StatusInternalServerError)
 		return

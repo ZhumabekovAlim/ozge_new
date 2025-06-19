@@ -12,6 +12,17 @@ type CompanyRepository struct {
 	DB *sql.DB
 }
 
+type CompanyQueryOptions struct {
+	Search      string
+	FilterID    *int
+	FilterName  string
+	FilterEmail string
+	SortBy      string
+	Order       string
+	CursorID    int
+	Limit       int
+}
+
 func NewCompanyRepository(db *sql.DB) *CompanyRepository {
 	return &CompanyRepository{DB: db}
 }
@@ -128,6 +139,65 @@ func (r *CompanyRepository) FindByPhone(phone string) (*models.Company, error) {
 		return nil, err
 	}
 	return &c, nil
+}
+
+func (r *CompanyRepository) FindAll(opts CompanyQueryOptions) ([]models.Company, error) {
+	qb := "SELECT id, name, email, phone FROM companies WHERE id >= ?"
+	args := []interface{}{opts.CursorID}
+
+	if opts.Search != "" {
+		s := "%" + opts.Search + "%"
+		qb += " AND (CAST(id AS CHAR) LIKE ? OR name LIKE ? OR email LIKE ? OR phone LIKE ?)"
+		args = append(args, s, s, s, s)
+	}
+	if opts.FilterID != nil {
+		qb += " AND id = ?"
+		args = append(args, *opts.FilterID)
+	}
+	if opts.FilterName != "" {
+		qb += " AND name = ?"
+		args = append(args, opts.FilterName)
+	}
+	if opts.FilterEmail != "" {
+		qb += " AND email = ?"
+		args = append(args, opts.FilterEmail)
+	}
+
+	orderBy := "id"
+	switch opts.SortBy {
+	case "name":
+		orderBy = "name"
+	case "email":
+		orderBy = "email"
+	}
+
+	order := "ASC"
+	if strings.ToUpper(opts.Order) == "DESC" {
+		order = "DESC"
+	}
+
+	if opts.Limit == 0 {
+		opts.Limit = 10
+	}
+
+	qb += " ORDER BY " + orderBy + " " + order + " LIMIT ?"
+	args = append(args, opts.Limit)
+
+	rows, err := r.DB.Query(qb, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []models.Company
+	for rows.Next() {
+		var c models.Company
+		if err := rows.Scan(&c.ID, &c.Name, &c.Email, &c.Phone); err != nil {
+			return nil, err
+		}
+		list = append(list, c)
+	}
+	return list, nil
 }
 
 func (r *CompanyRepository) FindAfter(cursorID int, limit int) ([]models.Company, error) {

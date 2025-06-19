@@ -6,10 +6,20 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
 )
 
 type PaymentRequestRepository struct {
 	DB *sql.DB
+}
+
+type PaymentRequestQueryOptions struct {
+	Search   string
+	Status   string
+	SortBy   string
+	Order    string
+	CursorID int
+	Limit    int
 }
 
 func NewPaymentRequestRepository(db *sql.DB) *PaymentRequestRepository {
@@ -27,12 +37,15 @@ func (r *PaymentRequestRepository) Create(p *models.PaymentRequest) error {
 
 func (r *PaymentRequestRepository) GetByID(id int) (*models.PaymentRequest, error) {
 	query := `
-	SELECT id, company_id, tariff_plan_id, sms_count, ecp_count, total_amount, status, payment_url, payment_ref, created_at, paid_at
-	FROM payment_requests WHERE id = ?
-	`
+        SELECT pr.id, pr.company_id, pr.tariff_plan_id, pr.sms_count, pr.ecp_count, pr.total_amount,
+               pr.status, pr.payment_url, pr.payment_ref, pr.created_at, pr.paid_at, c.name
+        FROM payment_requests pr
+        LEFT JOIN companies c ON pr.company_id = c.id
+        WHERE pr.id = ?
+        `
 	row := r.DB.QueryRow(query, id)
 	var p models.PaymentRequest
-	err := row.Scan(&p.ID, &p.CompanyID, &p.TariffPlanID, &p.SMSCount, &p.ECPCount, &p.TotalAmount, &p.Status, &p.PaymentURL, &p.PaymentRef, &p.CreatedAt, &p.PaidAt)
+	err := row.Scan(&p.ID, &p.CompanyID, &p.TariffPlanID, &p.SMSCount, &p.ECPCount, &p.TotalAmount, &p.Status, &p.PaymentURL, &p.PaymentRef, &p.CreatedAt, &p.PaidAt, &p.CompanyName)
 	if err != nil {
 		return nil, err
 	}
@@ -41,9 +54,12 @@ func (r *PaymentRequestRepository) GetByID(id int) (*models.PaymentRequest, erro
 
 func (r *PaymentRequestRepository) GetByCompany(companyID int) ([]models.PaymentRequest, error) {
 	query := `
-	SELECT id, company_id, tariff_plan_id, sms_count, ecp_count, total_amount, status, payment_url, payment_ref, created_at, paid_at
-	FROM payment_requests WHERE company_id = ?
-	`
+        SELECT pr.id, pr.company_id, pr.tariff_plan_id, pr.sms_count, pr.ecp_count, pr.total_amount,
+               pr.status, pr.payment_url, pr.payment_ref, pr.created_at, pr.paid_at, c.name
+        FROM payment_requests pr
+        LEFT JOIN companies c ON pr.company_id = c.id
+        WHERE pr.company_id = ?
+        `
 	rows, err := r.DB.Query(query, companyID)
 	if err != nil {
 		return nil, err
@@ -53,7 +69,7 @@ func (r *PaymentRequestRepository) GetByCompany(companyID int) ([]models.Payment
 	var list []models.PaymentRequest
 	for rows.Next() {
 		var p models.PaymentRequest
-		err := rows.Scan(&p.ID, &p.CompanyID, &p.TariffPlanID, &p.SMSCount, &p.ECPCount, &p.TotalAmount, &p.Status, &p.PaymentURL, &p.PaymentRef, &p.CreatedAt, &p.PaidAt)
+		err := rows.Scan(&p.ID, &p.CompanyID, &p.TariffPlanID, &p.SMSCount, &p.ECPCount, &p.TotalAmount, &p.Status, &p.PaymentURL, &p.PaymentRef, &p.CreatedAt, &p.PaidAt, &p.CompanyName)
 		if err != nil {
 			return nil, err
 		}
@@ -62,19 +78,60 @@ func (r *PaymentRequestRepository) GetByCompany(companyID int) ([]models.Payment
 	return list, nil
 }
 
-func (r *PaymentRequestRepository) GetAll(ctx context.Context, cursorID, limit int) ([]models.PaymentRequest, error) {
+func (r *PaymentRequestRepository) GetAll(ctx context.Context, opts PaymentRequestQueryOptions) ([]models.PaymentRequest, error) {
 	query := `
-		SELECT 
-			id, company_id, tariff_plan_id, sms_count, ecp_count, 
-			total_amount, status, payment_url, payment_ref, 
-			created_at, paid_at
-		FROM payment_requests
-		WHERE id < ?
-		ORDER BY id DESC
-		LIMIT ?
-	`
+                SELECT
+                        pr.id, pr.company_id, pr.tariff_plan_id, pr.sms_count, pr.ecp_count,
+                        pr.total_amount, pr.status, pr.payment_url, pr.payment_ref,
+                        pr.created_at, pr.paid_at, c.name
+                FROM payment_requests pr
+                LEFT JOIN companies c ON pr.company_id = c.id
+                WHERE pr.id <= ?`
+	args := []interface{}{opts.CursorID}
 
-	rows, err := r.DB.QueryContext(ctx, query, cursorID, limit)
+	if opts.Search != "" {
+		s := "%" + opts.Search + "%"
+		query += ` AND (
+                        CAST(pr.id AS CHAR) LIKE ? OR
+                        c.name LIKE ? OR
+                        CAST(pr.sms_count AS CHAR) LIKE ? OR
+                        CAST(pr.ecp_count AS CHAR) LIKE ? OR
+                        CAST(pr.total_amount AS CHAR) LIKE ? OR
+                        pr.payment_url LIKE ? OR
+                        pr.payment_ref LIKE ? OR
+                        DATE_FORMAT(pr.created_at, '%Y-%m-%d') LIKE ? OR
+                        DATE_FORMAT(pr.paid_at, '%Y-%m-%d') LIKE ?
+                )`
+		args = append(args, s, s, s, s, s, s, s, s, s)
+	}
+	if opts.Status != "" {
+		query += " AND pr.status = ?"
+		args = append(args, opts.Status)
+	}
+
+	orderBy := "pr.id"
+	switch opts.SortBy {
+	case "company_name":
+		orderBy = "c.name"
+	case "total_amount":
+		orderBy = "pr.total_amount"
+	case "created_at":
+		orderBy = "pr.created_at"
+	}
+
+	order := "ASC"
+	if strings.ToUpper(opts.Order) == "DESC" {
+		order = "DESC"
+	}
+
+	if opts.Limit == 0 {
+		opts.Limit = 20
+	}
+
+	query += " ORDER BY " + orderBy + " " + order + " LIMIT ?"
+	args = append(args, opts.Limit)
+
+	rows, err := r.DB.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute query: %w", err)
 	}
@@ -86,7 +143,7 @@ func (r *PaymentRequestRepository) GetAll(ctx context.Context, cursorID, limit i
 		err := rows.Scan(
 			&p.ID, &p.CompanyID, &p.TariffPlanID, &p.SMSCount, &p.ECPCount,
 			&p.TotalAmount, &p.Status, &p.PaymentURL, &p.PaymentRef,
-			&p.CreatedAt, &p.PaidAt,
+			&p.CreatedAt, &p.PaidAt, &p.CompanyName,
 		)
 		if err != nil {
 			log.Printf("scan error: %v", err)
