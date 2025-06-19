@@ -9,6 +9,8 @@ type CompanyService struct {
 	Repo *repositories.CompanyRepository
 }
 
+type CompanyListOptions = repositories.CompanyQueryOptions
+
 func NewCompanyService(repo *repositories.CompanyRepository) *CompanyService {
 	return &CompanyService{Repo: repo}
 }
@@ -19,6 +21,10 @@ func (s *CompanyService) Register(c *models.Company) (models.Company, error) {
 
 func (s *CompanyService) Login(login, password string) (models.Company, error) {
 	return s.Repo.LogIn(login, password)
+}
+
+func (s *CompanyService) List(opts CompanyListOptions) ([]models.Company, error) {
+	return s.Repo.FindAll(opts)
 }
 
 func (s *CompanyService) ListAfter(cursorID, limit int) ([]models.Company, error) {

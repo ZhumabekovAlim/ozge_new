@@ -60,22 +60,32 @@ func (h *PaymentRequestHandler) GetByCompany(w http.ResponseWriter, r *http.Requ
 func (h *PaymentRequestHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
-	cursorID := int(^uint(0) >> 1) // max int
-	limit := 20
+	opts := services.PaymentRequestListOptions{}
+	opts.CursorID = int(^uint(0) >> 1)
 
 	if cursorStr := query.Get("cursor"); cursorStr != "" {
 		if c, err := strconv.Atoi(cursorStr); err == nil {
-			cursorID = c
+			opts.CursorID = c
 		}
 	}
-
 	if limitStr := query.Get("limit"); limitStr != "" {
 		if l, err := strconv.Atoi(limitStr); err == nil {
-			limit = l
+			opts.Limit = l
 		}
 	}
+	if opts.Limit == 0 {
+		opts.Limit = 20
+	}
+	if search := query.Get("search"); search != "" {
+		opts.Search = search
+	}
+	if status := query.Get("status"); status != "" {
+		opts.Status = status
+	}
+	opts.SortBy = query.Get("sort")
+	opts.Order = query.Get("order")
 
-	list, err := h.Service.GetAll(r.Context(), cursorID, limit)
+	list, err := h.Service.GetAll(r.Context(), opts)
 	if err != nil {
 		log.Printf("handler error: %v", err)
 		http.Error(w, "fetch failed: "+err.Error(), http.StatusInternalServerError)
