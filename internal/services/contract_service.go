@@ -32,6 +32,18 @@ func (s *ContractService) GetByToken(token string) (*models.Contract, error) {
 	return s.Repo.GetByToken(token)
 }
 
+func (s *ContractService) GetByTokenWithFields(token string) (*models.ContractDetails, error) {
+	contract, err := s.Repo.GetByToken(token)
+	if err != nil {
+		return nil, err
+	}
+	fields, err := s.ContractFieldRepo.GetByContractID(contract.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &models.ContractDetails{Contract: *contract, Fields: fields}, nil
+}
+
 func (s *ContractService) GetByCompanyID(companyID int) ([]models.Contract, error) {
 	return s.Repo.GetByCompanyID(companyID)
 }

@@ -23,3 +23,9 @@ type ContractFieldDTO struct {
 	FieldName string `json:"field_name"`
 	FieldType string `json:"field_type"`
 }
+
+// ContractDetails represents a contract together with its additional fields.
+type ContractDetails struct {
+	Contract
+	Fields []ContractField `json:"fields"`
+}
