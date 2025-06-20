@@ -21,6 +21,7 @@ type CompanyQueryOptions struct {
 	Order       string
 	CursorID    int
 	Limit       int
+	Direction   string
 }
 
 func NewCompanyRepository(db *sql.DB) *CompanyRepository {
@@ -142,25 +143,30 @@ func (r *CompanyRepository) FindByPhone(phone string) (*models.Company, error) {
 }
 
 func (r *CompanyRepository) FindAll(opts CompanyQueryOptions) ([]models.Company, error) {
-	qb := "SELECT id, name, email, phone FROM companies WHERE id >= ?"
-	args := []interface{}{opts.CursorID}
+	var qb strings.Builder
+	var args []interface{}
+
+	qb.WriteString("SELECT id, name, email, phone FROM companies WHERE 1=1")
 
 	if opts.Search != "" {
 		s := "%" + opts.Search + "%"
-		qb += " AND (CAST(id AS CHAR) LIKE ? OR name LIKE ? OR email LIKE ? OR phone LIKE ?)"
+		qb.WriteString(" AND (CAST(id AS CHAR) LIKE ? OR name LIKE ? OR email LIKE ? OR phone LIKE ?)")
 		args = append(args, s, s, s, s)
 	}
+
 	if opts.FilterID != nil {
-		qb += " AND id = ?"
+		qb.WriteString(" AND id = ?")
 		args = append(args, *opts.FilterID)
 	}
+
 	if opts.FilterName != "" {
-		qb += " AND name = ?"
-		args = append(args, opts.FilterName)
+		qb.WriteString(" AND name LIKE ?")
+		args = append(args, "%"+opts.FilterName+"%")
 	}
+
 	if opts.FilterEmail != "" {
-		qb += " AND email = ?"
-		args = append(args, opts.FilterEmail)
+		qb.WriteString(" AND email LIKE ?")
+		args = append(args, "%"+opts.FilterEmail+"%")
 	}
 
 	orderBy := "id"
@@ -172,18 +178,42 @@ func (r *CompanyRepository) FindAll(opts CompanyQueryOptions) ([]models.Company,
 	}
 
 	order := "ASC"
+	comparator := ">="
 	if strings.ToUpper(opts.Order) == "DESC" {
 		order = "DESC"
+		comparator = "<="
+	}
+
+	// Adjust comparator for pagination direction
+	if opts.Direction == "prev" {
+		if order == "ASC" {
+			comparator = "<"
+			order = "DESC"
+		} else {
+			comparator = ">"
+			order = "ASC"
+		}
+	} else {
+		if order == "ASC" {
+			comparator = ">"
+		} else {
+			comparator = "<"
+		}
+	}
+
+	if opts.CursorID > 0 {
+		qb.WriteString(" AND id " + comparator + " ?")
+		args = append(args, opts.CursorID)
 	}
 
 	if opts.Limit == 0 {
 		opts.Limit = 10
 	}
 
-	qb += " ORDER BY " + orderBy + " " + order + " LIMIT ?"
+	qb.WriteString(" ORDER BY " + orderBy + " " + order + " LIMIT ?")
 	args = append(args, opts.Limit)
 
-	rows, err := r.DB.Query(qb, args...)
+	rows, err := r.DB.Query(qb.String(), args...)
 	if err != nil {
 		return nil, err
 	}
@@ -197,6 +227,14 @@ func (r *CompanyRepository) FindAll(opts CompanyQueryOptions) ([]models.Company,
 		}
 		list = append(list, c)
 	}
+
+	// Reverse the list if direction was "prev"
+	if opts.Direction == "prev" {
+		for i, j := 0, len(list)-1; i < j; i, j = i+1, j-1 {
+			list[i], list[j] = list[j], list[i]
+		}
+	}
+
 	return list, nil
 }
 

@@ -12,13 +12,14 @@ type SignatureRepository struct {
 }
 
 type SignatureQueryOptions struct {
-	Search   string
-	Status   *int
-	Method   string
-	SortBy   string
-	Order    string
-	CursorID int
-	Limit    int
+	Search    string
+	Status    *int
+	Method    string
+	SortBy    string
+	Order     string
+	CursorID  int
+	Limit     int
+	Direction string
 }
 
 func NewSignatureRepository(db *sql.DB) *SignatureRepository {
@@ -88,51 +89,60 @@ func (r *SignatureRepository) GetContractsByCompanyID(companyID int) ([]models.S
 	return signatures, nil
 }
 
-func (r *SignatureRepository) GetSignaturesAll(opts SignatureQueryOptions) ([]models.Signature, error) {
-	query := `
-                SELECT
-                        s.id,
-                        contract_id,
-                        t.name,
-                        s.client_name,
-                        s.client_iin,
-                        s.client_phone,
-                        s.method,
-                        status,
-                        s.signed_at,
-                        s.sign_file_path,
-                        co.name
-                FROM signatures s
-                LEFT JOIN contracts c ON c.id = s.contract_id
-                LEFT JOIN templates t ON t.id = c.template_id
-                LEFT JOIN signature_field_values sfv ON s.id = sfv.signature_id
-                LEFT JOIN companies co ON c.company_id = co.id
-                WHERE s.id >= ?`
-	args := []interface{}{opts.CursorID}
+func (r *SignatureRepository) GetSignaturesAll(opts models.SignatureQueryOptions) ([]models.Signature, error) {
+	var qb strings.Builder
+	var args []interface{}
 
+	qb.WriteString(`
+        SELECT
+            s.id,
+            contract_id,
+            t.name,
+            s.client_name,
+            s.client_iin,
+            s.client_phone,
+            s.method,
+            status,
+            s.signed_at,
+            s.sign_file_path,
+            co.name
+        FROM signatures s
+        LEFT JOIN contracts c ON c.id = s.contract_id
+        LEFT JOIN templates t ON t.id = c.template_id
+        LEFT JOIN signature_field_values sfv ON s.id = sfv.signature_id
+        LEFT JOIN companies co ON c.company_id = co.id
+        WHERE 1=1
+    `)
+
+	// Поиск
 	if opts.Search != "" {
 		s := "%" + opts.Search + "%"
-		query += ` AND (
-                        CAST(s.id AS CHAR) LIKE ? OR
-                        s.client_name LIKE ? OR
-                        s.client_phone LIKE ? OR
-                        t.name LIKE ? OR
-                        co.name LIKE ? OR
-                        s.method LIKE ? OR
-                        CAST(status AS CHAR) LIKE ? OR
-                        DATE_FORMAT(s.signed_at, '%Y-%m-%d') LIKE ?
-                )`
+		qb.WriteString(`
+            AND (
+                CAST(s.id AS CHAR) LIKE ? OR
+                s.client_name LIKE ? OR
+                s.client_phone LIKE ? OR
+                t.name LIKE ? OR
+                co.name LIKE ? OR
+                s.method LIKE ? OR
+                CAST(status AS CHAR) LIKE ? OR
+                DATE_FORMAT(s.signed_at, '%Y-%m-%d') LIKE ?
+            )
+        `)
 		args = append(args, s, s, s, s, s, s, s, s)
 	}
+
 	if opts.Status != nil {
-		query += " AND status = ?"
+		qb.WriteString(" AND status = ?")
 		args = append(args, *opts.Status)
 	}
+
 	if opts.Method != "" {
-		query += " AND s.method = ?"
+		qb.WriteString(" AND s.method = ?")
 		args = append(args, opts.Method)
 	}
 
+	// Сортировка и направление
 	orderBy := "s.id"
 	switch opts.SortBy {
 	case "client_name":
@@ -142,18 +152,38 @@ func (r *SignatureRepository) GetSignaturesAll(opts SignatureQueryOptions) ([]mo
 	}
 
 	order := "ASC"
+	comparator := ">"
 	if strings.ToUpper(opts.Order) == "DESC" {
 		order = "DESC"
+		comparator = "<"
+	}
+
+	// Если запрошено prev, переворачиваем порядок и comparator
+	if opts.Direction == "prev" {
+		if order == "ASC" {
+			comparator = "<"
+			order = "DESC"
+		} else {
+			comparator = ">"
+			order = "ASC"
+		}
+	}
+
+	// Добавить условие курсора
+	if opts.CursorID > 0 {
+		qb.WriteString(" AND s.id " + comparator + " ?")
+		args = append(args, opts.CursorID)
 	}
 
 	if opts.Limit == 0 {
 		opts.Limit = 20
 	}
 
-	query += " ORDER BY " + orderBy + " " + order + " LIMIT ?"
+	qb.WriteString(" ORDER BY " + orderBy + " " + order)
+	qb.WriteString(" LIMIT ?")
 	args = append(args, opts.Limit)
 
-	rows, err := r.DB.Query(query, args...)
+	rows, err := r.DB.Query(qb.String(), args...)
 	if err != nil {
 		return nil, err
 	}
@@ -181,8 +211,11 @@ func (r *SignatureRepository) GetSignaturesAll(opts SignatureQueryOptions) ([]mo
 		signatures = append(signatures, s)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, err
+	// Реверс при prev, чтобы вернуть в правильном порядке
+	if opts.Direction == "prev" {
+		for i, j := 0, len(signatures)-1; i < j; i, j = i+1, j-1 {
+			signatures[i], signatures[j] = signatures[j], signatures[i]
+		}
 	}
 
 	return signatures, nil

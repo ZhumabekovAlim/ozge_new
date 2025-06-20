@@ -7,6 +7,7 @@ import (
 	_ "github.com/bmizerany/pat"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type CompanyHandler struct {
@@ -61,12 +62,14 @@ func (h *CompanyHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	opts := services.CompanyListOptions{}
 
+	// cursor
 	if cursorStr := query.Get("cursor"); cursorStr != "" {
 		if id, err := strconv.Atoi(cursorStr); err == nil {
 			opts.CursorID = id
 		}
 	}
 
+	// limit
 	if limitStr := query.Get("limit"); limitStr != "" {
 		if l, err := strconv.Atoi(limitStr); err == nil {
 			opts.Limit = l
@@ -76,6 +79,14 @@ func (h *CompanyHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		opts.Limit = 10
 	}
 
+	// direction
+	direction := strings.ToLower(query.Get("direction"))
+	if direction != "prev" {
+		direction = "next"
+	}
+	opts.Direction = direction
+
+	// filters
 	if search := query.Get("search"); search != "" {
 		opts.Search = search
 	}
@@ -91,23 +102,28 @@ func (h *CompanyHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		opts.FilterEmail = email
 	}
 
+	// sorting
 	opts.SortBy = query.Get("sort")
 	opts.Order = query.Get("order")
 
+	// вызов сервиса
 	companies, err := h.Service.List(opts)
 	if err != nil {
 		http.Error(w, "cannot get companies", http.StatusInternalServerError)
 		return
 	}
 
-	var nextCursor int
+	var nextCursor, prevCursor int
 	if len(companies) > 0 {
+		prevCursor = companies[0].ID
 		nextCursor = companies[len(companies)-1].ID
 	}
 
+	// ответ
 	response := map[string]interface{}{
 		"data":        companies,
 		"next_cursor": nextCursor,
+		"prev_cursor": prevCursor,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

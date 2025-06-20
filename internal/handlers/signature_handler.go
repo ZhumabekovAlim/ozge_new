@@ -49,7 +49,7 @@ func (h *SignatureHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	signDir := fmt.Sprintf("uploads/signatures/company_%d", contract.CompanyID)
+	signDir := fmt.Sprintf("C:\\Users\\alimz\\GolandProjects\\OzgeContract\\uploads\\signatures\\company_%d", contract.CompanyID)
 	if err := os.MkdirAll(signDir, 0755); err != nil {
 		http.Error(w, "cannot create directory", http.StatusInternalServerError)
 		return
@@ -142,16 +142,25 @@ func (h *SignatureHandler) GetSignaturesAll(w http.ResponseWriter, r *http.Reque
 	if search := query.Get("search"); search != "" {
 		opts.Search = search
 	}
+
 	if statusStr := query.Get("status"); statusStr != "" {
 		if st, err := strconv.Atoi(statusStr); err == nil {
 			opts.Status = &st
 		}
 	}
+
 	if method := query.Get("method"); method != "" {
 		opts.Method = method
 	}
+
 	opts.SortBy = query.Get("sort")
 	opts.Order = query.Get("order")
+
+	direction := query.Get("direction")
+	if direction != "prev" {
+		direction = "next"
+	}
+	opts.Direction = direction
 
 	sigs, err := h.Service.GetSignaturesAll(opts)
 	if err != nil {
@@ -159,14 +168,16 @@ func (h *SignatureHandler) GetSignaturesAll(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	var nextCursor int
+	var nextCursor, prevCursor int
 	if len(sigs) > 0 {
+		prevCursor = sigs[0].ID
 		nextCursor = sigs[len(sigs)-1].ID
 	}
 
 	response := map[string]interface{}{
 		"data":        sigs,
 		"next_cursor": nextCursor,
+		"prev_cursor": prevCursor,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

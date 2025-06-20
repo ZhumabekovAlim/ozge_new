@@ -11,7 +11,7 @@ type SignatureService struct {
 	ContractRepo *repositories.ContractRepository
 }
 
-type SignatureListOptions = repositories.SignatureQueryOptions
+type SignatureListOptions = models.SignatureQueryOptions
 
 func NewSignatureService(repo *repositories.SignatureRepository, contractRepo *repositories.ContractRepository) *SignatureService {
 	return &SignatureService{
