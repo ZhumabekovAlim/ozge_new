@@ -73,5 +73,7 @@ func (app *application) routes() http.Handler {
 	mux.Put("/payment_requests/:id", standardMiddleware.ThenFunc(app.paymentHandler.Update))
 	mux.Del("/payment_requests/:id", standardMiddleware.ThenFunc(app.paymentHandler.Delete))
 
+	mux.Post("/sms/send", standardMiddleware.ThenFunc(app.smsHandler.Send))
+
 	return standardMiddleware.Then(mux)
 }

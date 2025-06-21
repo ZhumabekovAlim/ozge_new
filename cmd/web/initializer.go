@@ -9,6 +9,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -25,6 +26,7 @@ type application struct {
 	companyBalanceHandler      *handlers.CompanyBalanceHandler
 	tariffPlanHandler          *handlers.TariffPlanHandler
 	paymentHandler             *handlers.PaymentRequestHandler
+	smsHandler                 *handlers.SMSHandler
 }
 
 func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
@@ -73,6 +75,9 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 	paymentService := service.NewPaymentRequestService(paymentRepo, tariffPlanRepo)
 	paymentHandler := handlers.NewPaymentRequestHandler(paymentService)
 
+	smsService := service.NewSMSService(os.Getenv("MOBIZON_API_KEY"))
+	smsHandler := handlers.NewSMSHandler(smsService)
+
 	return &application{
 		errorLog:                   errorLog,
 		infoLog:                    infoLog,
@@ -86,6 +91,7 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 		companyBalanceHandler:      companyBalanceHandler,
 		tariffPlanHandler:          tariffPlanHandler,
 		paymentHandler:             paymentHandler,
+		smsHandler:                 smsHandler,
 	}
 }
 
