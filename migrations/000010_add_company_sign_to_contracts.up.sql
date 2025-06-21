@@ -1,0 +1,1 @@
+ALTER TABLE contracts ADD COLUMN company_sign BOOLEAN DEFAULT FALSE;

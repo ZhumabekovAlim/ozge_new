@@ -7,6 +7,7 @@ type Contract struct {
 	ContractToken    string `json:"contract_token"`
 	GeneratedPDFPath string `json:"generated_pdf_path"`
 	Method           string `json:"method"`
+	CompanySign      bool   `json:"company_sign"`
 	ClientFilled     bool   `json:"client_filled"`
 	CreatedAt        string `json:"created_at"`
 }
@@ -16,6 +17,7 @@ type CreateContractRequest struct {
 	TemplateID       int                `json:"template_id"`
 	GeneratedPDFPath string             `json:"generated_pdf_path"`
 	ClientFilled     bool               `json:"client_filled"`
+	CompanySign      bool               `json:"company_sign"`
 	Method           string             `json:"method"`
 	Fields           []ContractFieldDTO `json:"fields"` // новая структура (без contract_id)
 }
