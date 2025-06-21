@@ -98,6 +98,16 @@ func (h *ContractHandler) GetByToken(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(contract)
 }
 
+func (h *ContractHandler) GetByTokenWithFields(w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query().Get(":token")
+	details, err := h.Service.GetByTokenWithFields(token)
+	if err != nil {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+	json.NewEncoder(w).Encode(details)
+}
+
 func (h *ContractHandler) GetByCompany(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get(":id")
 	id, _ := strconv.Atoi(idStr)

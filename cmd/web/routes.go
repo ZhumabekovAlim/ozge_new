@@ -33,6 +33,7 @@ func (app *application) routes() http.Handler {
 	mux.Post("/contracts/with-fields", standardMiddleware.ThenFunc(app.contractHandler.CreateWithFields))
 	mux.Get("/contracts/:id", standardMiddleware.ThenFunc(app.contractHandler.GetByID))
 	mux.Get("/contracts/token/:token", standardMiddleware.ThenFunc(app.contractHandler.GetByToken))
+	mux.Get("/contracts/token/:token/details", standardMiddleware.ThenFunc(app.contractHandler.GetByTokenWithFields))
 	mux.Get("/contracts/company/:id", standardMiddleware.ThenFunc(app.contractHandler.GetByCompany))
 	mux.Put("/contracts/:id", standardMiddleware.ThenFunc(app.contractHandler.Update))
 	mux.Del("/contracts/:id", standardMiddleware.ThenFunc(app.contractHandler.Delete))

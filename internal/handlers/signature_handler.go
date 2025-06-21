@@ -14,11 +14,12 @@ import (
 )
 
 type SignatureHandler struct {
-	Service *services.SignatureService
+	Service           *services.SignatureService
+	FieldValueService *services.SignatureFieldValueService
 }
 
-func NewSignatureHandler(service *services.SignatureService) *SignatureHandler {
-	return &SignatureHandler{Service: service}
+func NewSignatureHandler(service *services.SignatureService, fvService *services.SignatureFieldValueService) *SignatureHandler {
+	return &SignatureHandler{Service: service, FieldValueService: fvService}
 }
 
 func (h *SignatureHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -28,6 +29,10 @@ func (h *SignatureHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	contractID, _ := strconv.Atoi(r.FormValue("contract_id"))
+	var valueDTOs []models.SignatureFieldValueDTO
+	if val := r.FormValue("field_values"); val != "" {
+		_ = json.Unmarshal([]byte(val), &valueDTOs)
+	}
 	input := models.Signature{
 		ContractID:  contractID,
 		ClientName:  r.FormValue("client_name"),
@@ -42,6 +47,16 @@ func (h *SignatureHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	input.ID = newID
+
+	// Save additional field values if provided
+	for _, v := range valueDTOs {
+		fv := models.SignatureFieldValue{
+			SignatureID:     newID,
+			ContractFieldID: v.ContractFieldID,
+			FieldValue:      v.FieldValue,
+		}
+		_ = h.FieldValueService.Create(&fv)
+	}
 
 	contract, err := h.Service.GetContractByID(input.ContractID)
 	if err != nil {

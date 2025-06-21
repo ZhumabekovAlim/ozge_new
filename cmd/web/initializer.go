@@ -48,13 +48,13 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 	// Signatures
 	signatureRepo := repository.NewSignatureRepository(db)
 	signatureService := service.NewSignatureService(signatureRepo, contractRepo)
-	signatureHandler := handlers.NewSignatureHandler(signatureService)
+	signatureFieldValueRepo := repository.NewSignatureFieldValueRepository(db)
+	signatureFieldValueService := service.NewSignatureFieldValueService(signatureFieldValueRepo)
+	signatureHandler := handlers.NewSignatureHandler(signatureService, signatureFieldValueService)
 
 	contractFieldService := service.NewContractFieldService(contractFieldRepo)
 	contractFieldHandler := handlers.NewContractFieldHandler(contractFieldService)
 
-	signatureFieldValueRepo := repository.NewSignatureFieldValueRepository(db)
-	signatureFieldValueService := service.NewSignatureFieldValueService(signatureFieldValueRepo)
 	signatureFieldValueHandler := handlers.NewSignatureFieldValueHandler(signatureFieldValueService)
 
 	statsRepo := repository.NewStatisticsRepository(db)

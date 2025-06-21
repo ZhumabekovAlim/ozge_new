@@ -7,3 +7,9 @@ type SignatureFieldValue struct {
 	FieldName       string `json:"field_name,omitempty"`
 	FieldValue      string `json:"field_value"`
 }
+
+// SignatureFieldValueDTO is used when creating signature field values together with a signature.
+type SignatureFieldValueDTO struct {
+	ContractFieldID int    `json:"contract_field_id"`
+	FieldValue      string `json:"field_value"`
+}

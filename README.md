@@ -41,6 +41,14 @@ clean_mobile_app/
 
 ---
 
+## 📑 Contracts & Signatures API
+
+* `POST /contracts/with-fields` – create a contract together with its additional fields. The request is a multipart form where the `fields` parameter contains a JSON array describing field names and types.
+* `GET /contracts/token/{token}/details` – retrieve a contract by token along with its signing method and list of additional fields.
+* `POST /signatures` – create a signature for a contract. Along with standard fields you can pass a `field_values` JSON array to store values for the contract's additional fields in one request.
+
+---
+
 ## 🛠️ Installation
 
 1. **Clone the repository**:
