@@ -35,6 +35,7 @@ func (app *application) routes() http.Handler {
 	mux.Get("/contracts/token/:token", standardMiddleware.ThenFunc(app.contractHandler.GetByToken))
 	mux.Get("/contracts/token/:token/details", standardMiddleware.ThenFunc(app.contractHandler.GetByTokenWithFields))
 	mux.Get("/contracts/company/:id", standardMiddleware.ThenFunc(app.contractHandler.GetByCompany))
+	mux.Get("/contracts/pdf/:id", standardMiddleware.ThenFunc(app.contractHandler.ServePDFByID))
 	mux.Put("/contracts/:id", standardMiddleware.ThenFunc(app.contractHandler.Update))
 	mux.Del("/contracts/:id", standardMiddleware.ThenFunc(app.contractHandler.Delete))
 
