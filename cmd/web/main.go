@@ -41,7 +41,7 @@ func main() {
 		}
 	}(db)
 
-	app := initializeApp(db, errorLog, infoLog)
+	app := initializeApp(cfg, db, errorLog, infoLog)
 
 	//c := cors.New(cors.Options{
 	//	AllowedOrigins:   []string{"*"},
