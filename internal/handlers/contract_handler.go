@@ -157,6 +157,7 @@ func (h *ContractHandler) CreateWithFields(w http.ResponseWriter, r *http.Reques
 	templateID, _ := strconv.Atoi(r.FormValue("template_id"))
 	method := r.FormValue("method")
 	clientFilled := r.FormValue("client_filled") == "true"
+	companySign := r.FormValue("company_sign") == "true" || r.FormValue("company_sign") == "1"
 
 	var fieldDTOs []models.ContractFieldDTO
 	if val := r.FormValue("fields"); val != "" {

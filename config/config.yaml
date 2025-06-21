@@ -4,3 +4,6 @@ server:
 database:
   driver: "mysql"
   url: "root:@tcp(localhost:3306)/ozge_contract?parseTime=true"
+
+mobizon:
+  api_key: "kzfaad0a91a4b498db593b78414dfdaa2c213b8b8996afa325a223543481efeb11dd11"

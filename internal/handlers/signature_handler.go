@@ -179,7 +179,8 @@ func (h *SignatureHandler) GetSignaturesAll(w http.ResponseWriter, r *http.Reque
 
 	sigs, err := h.Service.GetSignaturesAll(opts)
 	if err != nil {
-		http.Error(w, "not found", http.StatusNotFound)
+		log.Printf("GetSignaturesAll error: %v", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 

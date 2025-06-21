@@ -15,6 +15,9 @@ type Config struct {
 		Driver string `yaml:"driver"`
 		URL    string `yaml:"url"`
 	} `yaml:"database"`
+	Mobizon struct {
+		APIKey string `yaml:"api_key"`
+	} `yaml:"mobizon"`
 }
 
 // LoadConfig loads the configuration from config.yaml

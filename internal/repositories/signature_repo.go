@@ -27,8 +27,8 @@ func NewSignatureRepository(db *sql.DB) *SignatureRepository {
 }
 
 func (r *SignatureRepository) Create(s *models.Signature) (int, error) {
-	query := `INSERT INTO signatures (contract_id, client_name, client_iin, client_phone, signed_at) VALUES (?, ?, ?, ?, NOW())`
-	res, err := r.DB.Exec(query, s.ContractID, s.ClientName, s.ClientIIN, s.ClientPhone)
+	query := `INSERT INTO signatures (contract_id, client_name, client_iin, client_phone,method,status, signed_at) VALUES (?, ?, ?, ?, ?,?, NOW())`
+	res, err := r.DB.Exec(query, s.ContractID, s.ClientName, s.ClientIIN, s.ClientPhone, s.Method, 1)
 	if err != nil {
 		return 0, err
 	}
@@ -143,22 +143,34 @@ func (r *SignatureRepository) GetSignaturesAll(opts models.SignatureQueryOptions
 	}
 
 	// Сортировка и направление
-	orderBy := "s.id"
+	var orderBy string
 	switch opts.SortBy {
 	case "client_name":
 		orderBy = "s.client_name"
 	case "signed_at":
 		orderBy = "s.signed_at"
+	case "id", "", "default":
+		fallthrough
+	default:
+		orderBy = "s.id"
 	}
 
+	// Устанавливаем order и comparator
 	order := "ASC"
 	comparator := ">"
-	if strings.ToUpper(opts.Order) == "DESC" {
+	switch strings.ToUpper(opts.Order) {
+	case "DESC":
 		order = "DESC"
-		comparator = "<"
+		comparator = "<" // очень важно!
+	case "ASC":
+		order = "ASC"
+		comparator = ">"
+	default:
+		order = "ASC"
+		comparator = ">"
 	}
 
-	// Если запрошено prev, переворачиваем порядок и comparator
+	// Если direction = prev — инвертируем порядок и comparator
 	if opts.Direction == "prev" {
 		if order == "ASC" {
 			comparator = "<"
