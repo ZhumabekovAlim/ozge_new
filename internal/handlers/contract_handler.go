@@ -213,3 +213,33 @@ func (h *ContractHandler) CreateWithFields(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(contract)
 }
+
+// ServePDFByID streams the generated contract PDF to the client.
+func (h *ContractHandler) ServePDFByID(w http.ResponseWriter, r *http.Request) {
+	// Extract contract id from the URL
+	idStr := r.URL.Query().Get(":id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	// Retrieve contract information from the database
+	contract, err := h.Service.GetByID(id)
+	if err != nil || contract == nil {
+		http.Error(w, "contract not found", http.StatusNotFound)
+		return
+	}
+
+	// Normalize path and ensure the file exists
+	filePath := filepath.FromSlash(contract.GeneratedPDFPath)
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		http.Error(w, "file not found", http.StatusNotFound)
+		return
+	}
+
+	// Serve the PDF inline in the browser
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", "inline; filename=\""+filepath.Base(filePath)+"\"")
+	http.ServeFile(w, r, filePath)
+}
