@@ -31,12 +31,14 @@ func (h *ContractHandler) Create(w http.ResponseWriter, r *http.Request) {
 	templateID, _ := strconv.Atoi(r.FormValue("template_id"))
 	method := r.FormValue("method")
 	clientFilled := r.FormValue("client_filled") == "true"
+	companySign := r.FormValue("company_sign") == "true" || r.FormValue("company_sign") == "1"
 
 	input := models.Contract{
 		CompanyID:     companyID,
 		TemplateID:    templateID,
 		ClientFilled:  clientFilled,
 		Method:        method,
+		CompanySign:   companySign,
 		ContractToken: uuid.New().String(),
 	}
 
@@ -166,6 +168,7 @@ func (h *ContractHandler) CreateWithFields(w http.ResponseWriter, r *http.Reques
 		TemplateID:    templateID,
 		ClientFilled:  clientFilled,
 		Method:        method,
+		CompanySign:   companySign,
 		ContractToken: uuid.New().String(),
 	}
 
