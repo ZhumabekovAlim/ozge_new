@@ -64,7 +64,11 @@ func (h *SignatureHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	signDir := fmt.Sprintf("C:\\Users\\alimz\\GolandProjects\\OzgeContract\\uploads\\signatures\\company_%d", contract.CompanyID)
+	baseDir := os.Getenv("DATA_DIR")
+	if baseDir == "" {
+		baseDir = "uploads"
+	}
+	signDir := filepath.Join(baseDir, "signatures", fmt.Sprintf("company_%d", contract.CompanyID))
 	if err := os.MkdirAll(signDir, 0755); err != nil {
 		http.Error(w, "cannot create directory", http.StatusInternalServerError)
 		return

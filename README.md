@@ -37,7 +37,7 @@ clean_mobile_app/
 - **Go 1.23**: Latest version of Go with performance improvements.
 - **Scalability**: Designed to handle complex business logic with ease.
 - **Config Management**: Centralized and manageable application settings.
-- **Database Migrations**: Organized schema changes under the `db/migrations/` directory.
+- **Database Migrations**: Organized schema changes under the `migrations/` directory.
 
 ---
 
@@ -80,12 +80,24 @@ The configuration file (`config/config.yaml`) includes parameters like database 
 
 ## 🗃️ Database Migrations
 
-Use a tool like [golang-migrate](https://github.com/golang-migrate/migrate) to manage your database migrations. Place your `.sql` files in the `db/migrations/` folder.
+Use a tool like [golang-migrate](https://github.com/golang-migrate/migrate) to manage your database migrations. Place your `.sql` files in the `migrations/` folder.
 
 To run migrations:
 ```bash
-migrate -path db/migrations -database "your-database-url" up
+migrate -path migrations -database "your-database-url" up
 ```
+
+---
+
+## 🐳 Docker Deployment
+
+1. Create a `.env` file with your database credentials (see the provided example).
+2. Build and start all services with `docker-compose` which will run migrations using a dedicated container:
+   ```bash
+   docker-compose up --build
+   ```
+3. The application will be available on [http://localhost:4000](http://localhost:4000).
+
 
 ---
 

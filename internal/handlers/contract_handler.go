@@ -47,7 +47,11 @@ func (h *ContractHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contractsDir := fmt.Sprintf("C:\\Users\\alimz\\GolandProjects\\OzgeContract\\uploads\\contracts\\company_%d", input.CompanyID)
+	baseDir := os.Getenv("DATA_DIR")
+	if baseDir == "" {
+		baseDir = "uploads"
+	}
+	contractsDir := filepath.Join(baseDir, "contracts", fmt.Sprintf("company_%d", input.CompanyID))
 	if err := os.MkdirAll(contractsDir, 0755); err != nil {
 		http.Error(w, "cannot create directory", http.StatusInternalServerError)
 		return
@@ -186,7 +190,11 @@ func (h *ContractHandler) CreateWithFields(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	contractsDir := fmt.Sprintf("uploads/contracts/company_%d", contract.CompanyID)
+	baseDir := os.Getenv("DATA_DIR")
+	if baseDir == "" {
+		baseDir = "uploads"
+	}
+	contractsDir := filepath.Join(baseDir, "contracts", fmt.Sprintf("company_%d", contract.CompanyID))
 	if err := os.MkdirAll(contractsDir, 0755); err != nil {
 		http.Error(w, "cannot create directory", http.StatusInternalServerError)
 		return
