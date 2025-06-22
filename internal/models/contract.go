@@ -10,6 +10,7 @@ type Contract struct {
 	CompanySign      bool   `json:"company_sign"`
 	ClientFilled     bool   `json:"client_filled"`
 	CreatedAt        string `json:"created_at"`
+	CompanyName      string `json:"company_name,omitempty"`
 }
 
 type CreateContractRequest struct {

@@ -3,7 +3,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN go build -o app ./cmd/web/main.go
+RUN go build -o app ./cmd/web
 
 FROM alpine:latest
 WORKDIR /app

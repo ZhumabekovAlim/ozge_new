@@ -39,10 +39,12 @@ func (r *ContractRepository) GetByID(id int) (*models.Contract, error) {
 }
 
 func (r *ContractRepository) GetByToken(token string) (*models.Contract, error) {
-	query := `SELECT id, company_id, template_id, contract_token, generated_file_path, client_filled, method, company_sign, created_at FROM contracts WHERE contract_token = ?`
+	query := `SELECT contracts.id, company_id, template_id, contract_token, generated_file_path, client_filled, method, company_sign, created_at, companies.name FROM contracts 
+                JOIN companies ON contracts.company_id = companies.id                                                                                                    
+            	WHERE contract_token = ?`
 	row := r.DB.QueryRow(query, token)
 	var c models.Contract
-	err := row.Scan(&c.ID, &c.CompanyID, &c.TemplateID, &c.ContractToken, &c.GeneratedPDFPath, &c.ClientFilled, &c.Method, &c.CompanySign, &c.CreatedAt)
+	err := row.Scan(&c.ID, &c.CompanyID, &c.TemplateID, &c.ContractToken, &c.GeneratedPDFPath, &c.ClientFilled, &c.Method, &c.CompanySign, &c.CreatedAt, &c.CompanyName)
 	if err != nil {
 		return nil, err
 	}
