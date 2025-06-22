@@ -97,7 +97,7 @@ func (h *SignatureHandler) Create(w http.ResponseWriter, r *http.Request) {
 	_ = h.Service.UpdateSignFilePath(input.ID, signedPDF)
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(input)
+	json.NewEncoder(w).Encode(map[string]int{"id": input.ID})
 }
 
 func (h *SignatureHandler) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -108,6 +108,71 @@ func (h *SignatureHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", http.StatusOK)
 		return
 	}
+	json.NewEncoder(w).Encode(sig)
+}
+
+func (h *SignatureHandler) UpdateQR(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get(":id")
+	id, _ := strconv.Atoi(idStr)
+
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "invalid form", http.StatusBadRequest)
+		return
+	}
+
+	sig, err := h.Service.GetByID(id)
+	if err != nil {
+		http.Error(w, "signature not found", http.StatusNotFound)
+		return
+	}
+
+	contract, err := h.Service.GetContractByID(sig.ContractID)
+	if err != nil {
+		http.Error(w, "contract not found", http.StatusNotFound)
+		return
+	}
+
+	baseDir := os.Getenv("DATA_DIR")
+	if baseDir == "" {
+		baseDir = "uploads"
+	}
+	signDir := filepath.Join(baseDir, "signatures", fmt.Sprintf("company_%d", contract.CompanyID))
+	if err := os.MkdirAll(signDir, 0755); err != nil {
+		http.Error(w, "cannot create directory", http.StatusInternalServerError)
+		return
+	}
+
+	signedPDF := filepath.Join(signDir, fmt.Sprintf("signed_final_%d.pdf", sig.ID))
+
+	if sig.SignFilePath != "" {
+		_ = os.Remove(sig.SignFilePath)
+	}
+
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "file required", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	out, err := os.Create(signedPDF)
+	if err != nil {
+		http.Error(w, "cannot save file", http.StatusInternalServerError)
+		return
+	}
+	defer out.Close()
+	if _, err := io.Copy(out, file); err != nil {
+		http.Error(w, "write failed", http.StatusInternalServerError)
+		return
+	}
+
+	if err := h.Service.UpdateSignFilePath(sig.ID, signedPDF); err != nil {
+		http.Error(w, "update failed", http.StatusInternalServerError)
+		return
+	}
+	sig.SignFilePath = signedPDF
+
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(sig)
 }
 
