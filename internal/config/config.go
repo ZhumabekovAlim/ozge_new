@@ -24,8 +24,14 @@ type Config struct {
 func LoadConfig() Config {
 	var cfg Config
 
+	// Determine config file path
+	path := os.Getenv("CONFIG_PATH")
+	if path == "" {
+		path = "config/config.yaml"
+	}
+
 	// Read config file
-	data, err := os.ReadFile("C:\\Users\\alimz\\GolandProjects\\OzgeContract\\config\\config.yaml")
+	data, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatalf("Failed to read config file: %v", err)
 	}
@@ -34,6 +40,11 @@ func LoadConfig() Config {
 	err = yaml.Unmarshal(data, &cfg)
 	if err != nil {
 		log.Fatalf("Failed to unmarshal config data: %v", err)
+	}
+
+	// Override database URL if provided via environment
+	if envURL := os.Getenv("DATABASE_URL"); envURL != "" {
+		cfg.Database.URL = envURL
 	}
 
 	return cfg

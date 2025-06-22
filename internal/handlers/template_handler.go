@@ -41,7 +41,11 @@ func (h *TemplateHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
 
 	// --- Создаём директорию для компании
-	companyDir := fmt.Sprintf("C:\\Users\\alimz\\GolandProjects\\OzgeContract\\uploads\\templates\\company_%d", companyID)
+	baseDir := os.Getenv("DATA_DIR")
+	if baseDir == "" {
+		baseDir = "uploads"
+	}
+	companyDir := filepath.Join(baseDir, "templates", fmt.Sprintf("company_%d", companyID))
 	if err := os.MkdirAll(companyDir, 0755); err != nil {
 		http.Error(w, "cannot create directory", http.StatusInternalServerError)
 		return
@@ -67,7 +71,12 @@ func (h *TemplateHandler) Upload(w http.ResponseWriter, r *http.Request) {
 
 	// --- Watermark
 	desc := "op:0.2, pos:bottom-right, scale:0.1, rot:0, off:-20 20"
-	wm, err := pdfcpu.ParseImageWatermarkDetails("C:\\Users\\alimz\\GolandProjects\\OzgeContract\\static\\contract-logo.png", desc, false, types.POINTS)
+	staticDir := os.Getenv("STATIC_DIR")
+	if staticDir == "" {
+		staticDir = "static"
+	}
+	logoPath := filepath.Join(staticDir, "contract-logo.png")
+	wm, err := pdfcpu.ParseImageWatermarkDetails(logoPath, desc, false, types.POINTS)
 	if err != nil {
 		http.Error(w, "cannot parse image watermark: "+err.Error(), http.StatusInternalServerError)
 		return

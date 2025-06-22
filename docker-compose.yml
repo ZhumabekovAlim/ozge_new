@@ -1,0 +1,63 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: ozgecontract-db
+    restart: always
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - ozgecontractnet
+
+  migrate:
+    image: migrate/migrate
+    depends_on:
+      - db
+    volumes:
+      - ./migrations:/migrations
+    command: [
+      "-source", "file:///migrations",
+      "-database", "mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(db:3306)/${MYSQL_DATABASE}?parseTime=true",
+      "up"
+    ]
+    networks:
+      - ozgecontractnet
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ozgecontract-backend
+    restart: always
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      DSN: ${DSN}
+      APP_PORT: ${APP_PORT}
+      DATABASE_URL: ${DATABASE_URL}
+    ports:
+      - "${APP_PORT}:4000"
+    command: ["./wait-for-mysql.sh", "./app"]
+    volumes:
+      - ./config:/app/config
+      - ./wait-for-mysql.sh:/app/wait-for-mysql.sh
+    networks:
+      - ozgecontractnet
+
+volumes:
+  dbdata:
+
+networks:
+  ozgecontractnet:
