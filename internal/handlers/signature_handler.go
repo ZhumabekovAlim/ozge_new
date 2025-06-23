@@ -336,6 +336,7 @@ func (h *SignatureHandler) ServeSignedPDFByID(w http.ResponseWriter, r *http.Req
 }
 
 func (h *SignatureHandler) GetStatusSummary(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("GetStatusSummary called")
 	summary, err := h.Service.GetStatusSummary()
 	if err != nil {
 		http.Error(w, "cannot get summary", http.StatusInternalServerError)

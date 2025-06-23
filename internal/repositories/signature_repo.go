@@ -250,7 +250,7 @@ func (r *SignatureRepository) GetStatusSummary() (*models.SignatureStatusSummary
                 SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS signed,
                 SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS pending,
                 SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS declined
-        FROM signatures`
+        	FROM signatures`
 	row := r.DB.QueryRow(query)
 	if err := row.Scan(&summary.Total, &summary.Signed, &summary.Pending, &summary.Declined); err != nil {
 		return nil, err
