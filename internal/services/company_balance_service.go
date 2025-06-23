@@ -3,6 +3,7 @@ package services
 import (
 	"OzgeContract/internal/models"
 	"OzgeContract/internal/repositories"
+	"database/sql"
 )
 
 type CompanyBalanceService struct {
@@ -22,6 +23,13 @@ func (s *CompanyBalanceService) GetByCompanyID(companyID int) (*models.CompanyBa
 }
 
 func (s *CompanyBalanceService) Update(cb *models.CompanyBalance) error {
+	_, err := s.Repo.GetByCompanyID(cb.CompanyID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return s.Repo.Create(cb)
+		}
+		return err
+	}
 	return s.Repo.Update(cb)
 }
 
