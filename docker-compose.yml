@@ -53,6 +53,7 @@ services:
     volumes:
       - ./config:/app/config
       - ./wait-for-mysql.sh:/app/wait-for-mysql.sh
+      - ./uploads:/app/uploads
     networks:
       - ozgecontractnet
 
