@@ -31,7 +31,10 @@ func (r *CompanyBalanceRepository) GetByCompanyID(companyID int) (*models.Compan
 }
 
 func (r *CompanyBalanceRepository) Update(cb *models.CompanyBalance) error {
-	query := `UPDATE company_balances SET sms_signatures = ?, ecp_signatures = ? WHERE company_id = ?`
+	query := `UPDATE company_balances
+                  SET sms_signatures = sms_signatures + ?,
+                      ecp_signatures = ecp_signatures + ?
+                  WHERE company_id = ?`
 	_, err := r.DB.Exec(query, cb.SMSSignatures, cb.ECPSignatures, cb.CompanyID)
 	return err
 }
