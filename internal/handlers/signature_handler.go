@@ -334,3 +334,13 @@ func (h *SignatureHandler) ServeSignedPDFByID(w http.ResponseWriter, r *http.Req
 	w.Header().Set("Content-Disposition", "inline; filename=\""+filepath.Base(filePath)+"\"")
 	http.ServeFile(w, r, filePath)
 }
+
+func (h *SignatureHandler) GetStatusSummary(w http.ResponseWriter, r *http.Request) {
+	summary, err := h.Service.GetStatusSummary()
+	if err != nil {
+		http.Error(w, "cannot get summary", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(summary)
+}

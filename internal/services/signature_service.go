@@ -68,3 +68,7 @@ func (s *SignatureService) Sign(contractID int, clientName, clientIIN, clientPho
 
 	return s.Repo.Create(signature)
 }
+
+func (s *SignatureService) GetStatusSummary() (*models.SignatureStatusSummary, error) {
+	return s.Repo.GetStatusSummary()
+}
