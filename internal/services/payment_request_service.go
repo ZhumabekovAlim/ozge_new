@@ -10,8 +10,9 @@ import (
 const SIGNATURE_PRICE = 100.0
 
 type PaymentRequestService struct {
-	Repo       *repositories.PaymentRequestRepository
-	TariffRepo *repositories.TariffPlanRepository
+	Repo        *repositories.PaymentRequestRepository
+	TariffRepo  *repositories.TariffPlanRepository
+	BalanceRepo *repositories.CompanyBalanceRepository
 }
 
 type PaymentRequestListOptions = repositories.PaymentRequestQueryOptions
@@ -19,10 +20,12 @@ type PaymentRequestListOptions = repositories.PaymentRequestQueryOptions
 func NewPaymentRequestService(
 	repo *repositories.PaymentRequestRepository,
 	tariffRepo *repositories.TariffPlanRepository,
+	balanceRepo *repositories.CompanyBalanceRepository,
 ) *PaymentRequestService {
 	return &PaymentRequestService{
-		Repo:       repo,
-		TariffRepo: tariffRepo,
+		Repo:        repo,
+		TariffRepo:  tariffRepo,
+		BalanceRepo: balanceRepo,
 	}
 }
 
@@ -107,7 +110,22 @@ func (s *PaymentRequestService) GetAll(ctx context.Context, opts PaymentRequestL
 }
 
 func (s *PaymentRequestService) Update(p *models.PaymentRequest) error {
-	return s.Repo.Update(p)
+	if err := s.Repo.Update(p); err != nil {
+		return err
+	}
+
+	if s.BalanceRepo != nil && p.Status == "paid" && (p.SMSSignatures > 0 || p.ECPSignatures > 0) {
+		balance := &models.CompanyBalance{
+			CompanyID:     p.CompanyID,
+			SMSSignatures: p.SMSSignatures,
+			ECPSignatures: p.ECPSignatures,
+		}
+		if err := s.BalanceRepo.Update(balance); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *PaymentRequestService) Delete(id int) error {
