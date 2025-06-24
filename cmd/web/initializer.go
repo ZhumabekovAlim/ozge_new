@@ -32,8 +32,9 @@ type application struct {
 func initializeApp(cfg config.Config, db *sql.DB, errorLog, infoLog *log.Logger) *application {
 
 	// Company
+	companyBalanceRepo := repository.NewCompanyBalanceRepository(db)
 	companyRepo := repository.NewCompanyRepository(db)
-	companyService := service.NewCompanyService(companyRepo)
+	companyService := service.NewCompanyService(companyRepo, companyBalanceRepo)
 	companyHandler := handlers.NewCompanyHandler(companyService)
 
 	// Template
@@ -63,7 +64,6 @@ func initializeApp(cfg config.Config, db *sql.DB, errorLog, infoLog *log.Logger)
 	statsService := service.NewStatisticsService(statsRepo)
 	statsHandler := handlers.NewStatisticsHandler(statsService)
 
-	companyBalanceRepo := repository.NewCompanyBalanceRepository(db)
 	companyBalanceService := service.NewCompanyBalanceService(companyBalanceRepo)
 	companyBalanceHandler := handlers.NewCompanyBalanceHandler(companyBalanceService)
 

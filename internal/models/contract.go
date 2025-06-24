@@ -5,6 +5,7 @@ type Contract struct {
 	CompanyID        int    `json:"company_id"`
 	TemplateID       int    `json:"template_id"`
 	ContractToken    string `json:"contract_token"`
+	SerialNumber     string `json:"serial_number"`
 	GeneratedPDFPath string `json:"generated_pdf_path"`
 	Method           string `json:"method"`
 	CompanySign      bool   `json:"company_sign"`
@@ -18,6 +19,7 @@ type CreateContractRequest struct {
 	CompanyID        int                `json:"company_id"`
 	TemplateID       int                `json:"template_id"`
 	GeneratedPDFPath string             `json:"generated_pdf_path"`
+	SerialNumber     string             `json:"serial_number"`
 	ClientFilled     bool               `json:"client_filled"`
 	CompanySign      bool               `json:"company_sign"`
 	Method           string             `json:"method"`
