@@ -54,11 +54,29 @@ func (r *PaymentRequestRepository) GetByID(id int) (*models.PaymentRequest, erro
 
 func (r *PaymentRequestRepository) GetByCompany(companyID int) ([]models.PaymentRequest, error) {
 	query := `
-        SELECT pr.id, pr.company_id, pr.tariff_plan_id, pr.sms_count, pr.ecp_count, pr.total_amount,
-               pr.status, pr.payment_url, pr.payment_ref, pr.created_at, pr.paid_at, c.name, c.iin
-        FROM payment_requests pr
-        LEFT JOIN companies c ON pr.company_id = c.id
-        WHERE pr.company_id = ?
+		SELECT 
+			pr.id, 
+			pr.company_id, 
+			pr.tariff_plan_id, 
+			pr.sms_count, 
+			pr.ecp_count, 
+			pr.total_amount,
+			pr.status, 
+			pr.payment_url, 
+			pr.payment_ref, 
+			pr.created_at, 
+			pr.paid_at, 
+			c.name, 
+			c.iin
+		FROM 
+			payment_requests pr
+		LEFT JOIN 
+			companies c ON pr.company_id = c.id
+		WHERE 
+			pr.company_id = ?
+		ORDER BY 
+			CASE WHEN pr.status = 'pending' THEN 0 ELSE 1 END,  -- pending сначала
+			pr.created_at DESC 
         `
 	rows, err := r.DB.Query(query, companyID)
 	if err != nil {
