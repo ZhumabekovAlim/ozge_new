@@ -57,6 +57,7 @@ func (h *CompanyBalanceHandler) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "update failed", http.StatusInternalServerError)
 		return
 	}
+
 	w.WriteHeader(http.StatusOK)
 }
 

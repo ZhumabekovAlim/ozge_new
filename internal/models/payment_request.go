@@ -6,8 +6,8 @@ type PaymentRequest struct {
 	ID            int        `json:"id"`
 	CompanyID     int        `json:"company_id"`
 	TariffPlanID  *int       `json:"tariff_plan_id,omitempty"`
-	SMSCount      int        `json:"sms_count"`
-	ECPCount      int        `json:"ecp_count"`
+	SMSCount      int        `json:"sms_count,omitempty"`
+	ECPCount      int        `json:"ecp_count,omitempty"`
 	SMSSignatures int        `json:"sms_signatures,omitempty"`
 	ECPSignatures int        `json:"ecp_signatures,omitempty"`
 	TotalAmount   float64    `json:"total_amount,omitempty"`
