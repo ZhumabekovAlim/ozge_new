@@ -30,6 +30,7 @@ func (h *ContractHandler) Create(w http.ResponseWriter, r *http.Request) {
 	companyID, _ := strconv.Atoi(r.FormValue("company_id"))
 	templateID, _ := strconv.Atoi(r.FormValue("template_id"))
 	method := r.FormValue("method")
+	serialNumber := r.FormValue("serial_number")
 	clientFilled := r.FormValue("client_filled") == "true"
 	companySign := r.FormValue("company_sign") == "true" || r.FormValue("company_sign") == "1"
 
@@ -38,6 +39,7 @@ func (h *ContractHandler) Create(w http.ResponseWriter, r *http.Request) {
 		TemplateID:    templateID,
 		ClientFilled:  clientFilled,
 		Method:        method,
+		SerialNumber:  serialNumber,
 		CompanySign:   companySign,
 		ContractToken: uuid.New().String(),
 	}
@@ -160,6 +162,7 @@ func (h *ContractHandler) CreateWithFields(w http.ResponseWriter, r *http.Reques
 	companyID, _ := strconv.Atoi(r.FormValue("company_id"))
 	templateID, _ := strconv.Atoi(r.FormValue("template_id"))
 	method := r.FormValue("method")
+	serialNumber := r.FormValue("serial_number")
 	clientFilled := r.FormValue("client_filled") == "true"
 	companySign := r.FormValue("company_sign") == "true" || r.FormValue("company_sign") == "1"
 
@@ -173,6 +176,7 @@ func (h *ContractHandler) CreateWithFields(w http.ResponseWriter, r *http.Reques
 		TemplateID:    templateID,
 		ClientFilled:  clientFilled,
 		Method:        method,
+		SerialNumber:  serialNumber,
 		CompanySign:   companySign,
 		ContractToken: uuid.New().String(),
 	}
