@@ -22,7 +22,7 @@ func NewCompanyHandler(s *services.CompanyService) *CompanyHandler {
 func (h *CompanyHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var input models.Company
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil ||
-		input.Name == "" || input.Password == "" || (input.Email == "" && input.Phone == "") {
+		input.Name == "" || input.Password == "" || input.IIN == "" || (input.Email == "" && input.Phone == "") {
 		http.Error(w, "invalid input", http.StatusBadRequest)
 		return
 	}

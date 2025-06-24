@@ -65,8 +65,8 @@ func (r *CompanyRepository) SignUp(c models.Company) (models.Company, error) {
 	}
 
 	// Вставка в базу
-	query := "INSERT INTO companies (name, email, phone, password) VALUES (?, ?, ?, ?)"
-	result, err := r.DB.Exec(query, c.Name, c.Email, c.Phone, hashedPassword)
+	query := "INSERT INTO companies (name, email, phone, password, iin) VALUES (?, ?, ?, ?, ?)"
+	result, err := r.DB.Exec(query, c.Name, c.Email, c.Phone, hashedPassword, c.IIN)
 	if err != nil {
 		return models.Company{}, err
 	}
@@ -86,11 +86,11 @@ func (r *CompanyRepository) LogIn(login, password string) (models.Company, error
 	var err error
 
 	if isEmail(login) {
-		err = r.DB.QueryRow("SELECT id, name, email, phone, password FROM companies WHERE email = ?", login).
-			Scan(&c.ID, &c.Name, &c.Email, &c.Phone, &c.Password)
+		err = r.DB.QueryRow("SELECT id, name, email, phone, password, iin FROM companies WHERE email = ?", login).
+			Scan(&c.ID, &c.Name, &c.Email, &c.Phone, &c.Password, &c.IIN)
 	} else {
-		err = r.DB.QueryRow("SELECT id, name, email, phone, password FROM companies WHERE phone = ?", login).
-			Scan(&c.ID, &c.Name, &c.Email, &c.Phone, &c.Password)
+		err = r.DB.QueryRow("SELECT id, name, email, phone, password, iin FROM companies WHERE phone = ?", login).
+			Scan(&c.ID, &c.Name, &c.Email, &c.Phone, &c.Password, &c.IIN)
 	}
 
 	if err != nil {
@@ -115,16 +115,16 @@ func isEmail(login string) bool {
 }
 
 func (r *CompanyRepository) Update(c *models.Company) error {
-	query := `UPDATE companies SET name=?, email=?, phone=?, password=? WHERE id=?`
-	_, err := r.DB.Exec(query, c.Name, c.Email, c.Phone, c.Password, c.ID)
+	query := `UPDATE companies SET name=?, email=?, phone=?, password=?, iin=? WHERE id=?`
+	_, err := r.DB.Exec(query, c.Name, c.Email, c.Phone, c.Password, c.IIN, c.ID)
 	return err
 }
 
 func (r *CompanyRepository) FindByID(id int) (*models.Company, error) {
-	query := `SELECT id, name, email, phone, password FROM companies WHERE id = ?`
+	query := `SELECT id, name, email, phone, password, iin FROM companies WHERE id = ?`
 	row := r.DB.QueryRow(query, id)
 	var c models.Company
-	err := row.Scan(&c.ID, &c.Name, &c.Email, &c.Phone, &c.Password)
+	err := row.Scan(&c.ID, &c.Name, &c.Email, &c.Phone, &c.Password, &c.IIN)
 	if err != nil {
 		return nil, err
 	}
@@ -132,10 +132,10 @@ func (r *CompanyRepository) FindByID(id int) (*models.Company, error) {
 }
 
 func (r *CompanyRepository) FindByPhone(phone string) (*models.Company, error) {
-	query := `SELECT id, name, email, phone, password FROM companies WHERE phone = ?`
+	query := `SELECT id, name, email, phone, password, iin FROM companies WHERE phone = ?`
 	row := r.DB.QueryRow(query, phone)
 	var c models.Company
-	err := row.Scan(&c.ID, &c.Name, &c.Email, &c.Phone, &c.Password)
+	err := row.Scan(&c.ID, &c.Name, &c.Email, &c.Phone, &c.Password, &c.IIN)
 	if err != nil {
 		return nil, err
 	}
@@ -146,12 +146,12 @@ func (r *CompanyRepository) FindAll(opts CompanyQueryOptions) ([]models.Company,
 	var qb strings.Builder
 	var args []interface{}
 
-	qb.WriteString("SELECT id, name, email, phone FROM companies WHERE 1=1")
+	qb.WriteString("SELECT id, name, email, phone, iin FROM companies WHERE 1=1")
 
 	if opts.Search != "" {
 		s := "%" + opts.Search + "%"
-		qb.WriteString(" AND (CAST(id AS CHAR) LIKE ? OR name LIKE ? OR email LIKE ? OR phone LIKE ?)")
-		args = append(args, s, s, s, s)
+		qb.WriteString(" AND (CAST(id AS CHAR) LIKE ? OR name LIKE ? OR email LIKE ? OR phone LIKE ? OR iin LIKE ?)")
+		args = append(args, s, s, s, s, s)
 	}
 
 	if opts.FilterID != nil {
@@ -222,7 +222,7 @@ func (r *CompanyRepository) FindAll(opts CompanyQueryOptions) ([]models.Company,
 	var list []models.Company
 	for rows.Next() {
 		var c models.Company
-		if err := rows.Scan(&c.ID, &c.Name, &c.Email, &c.Phone); err != nil {
+		if err := rows.Scan(&c.ID, &c.Name, &c.Email, &c.Phone, &c.IIN); err != nil {
 			return nil, err
 		}
 		list = append(list, c)
@@ -255,7 +255,7 @@ func (r *CompanyRepository) FindAfter(cursorID int, limit int) ([]models.Company
 	var companies []models.Company
 	for rows.Next() {
 		var c models.Company
-		if err := rows.Scan(&c.ID, &c.Name, &c.Email, &c.Phone); err != nil {
+		if err := rows.Scan(&c.ID, &c.Name, &c.Email, &c.Phone, &c.IIN); err != nil {
 			return nil, err
 		}
 		companies = append(companies, c)

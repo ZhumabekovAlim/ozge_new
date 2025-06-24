@@ -38,14 +38,14 @@ func (r *PaymentRequestRepository) Create(p *models.PaymentRequest) error {
 func (r *PaymentRequestRepository) GetByID(id int) (*models.PaymentRequest, error) {
 	query := `
         SELECT pr.id, pr.company_id, pr.tariff_plan_id, pr.sms_count, pr.ecp_count, pr.total_amount,
-               pr.status, pr.payment_url, pr.payment_ref, pr.created_at, pr.paid_at, c.name
+               pr.status, pr.payment_url, pr.payment_ref, pr.created_at, pr.paid_at, c.name, c.iin
         FROM payment_requests pr
         LEFT JOIN companies c ON pr.company_id = c.id
         WHERE pr.id = ?
         `
 	row := r.DB.QueryRow(query, id)
 	var p models.PaymentRequest
-	err := row.Scan(&p.ID, &p.CompanyID, &p.TariffPlanID, &p.SMSCount, &p.ECPCount, &p.TotalAmount, &p.Status, &p.PaymentURL, &p.PaymentRef, &p.CreatedAt, &p.PaidAt, &p.CompanyName)
+	err := row.Scan(&p.ID, &p.CompanyID, &p.TariffPlanID, &p.SMSCount, &p.ECPCount, &p.TotalAmount, &p.Status, &p.PaymentURL, &p.PaymentRef, &p.CreatedAt, &p.PaidAt, &p.CompanyName, &p.CompanyIIN)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (r *PaymentRequestRepository) GetByID(id int) (*models.PaymentRequest, erro
 func (r *PaymentRequestRepository) GetByCompany(companyID int) ([]models.PaymentRequest, error) {
 	query := `
         SELECT pr.id, pr.company_id, pr.tariff_plan_id, pr.sms_count, pr.ecp_count, pr.total_amount,
-               pr.status, pr.payment_url, pr.payment_ref, pr.created_at, pr.paid_at, c.name
+               pr.status, pr.payment_url, pr.payment_ref, pr.created_at, pr.paid_at, c.name, c.iin
         FROM payment_requests pr
         LEFT JOIN companies c ON pr.company_id = c.id
         WHERE pr.company_id = ?
@@ -69,7 +69,7 @@ func (r *PaymentRequestRepository) GetByCompany(companyID int) ([]models.Payment
 	var list []models.PaymentRequest
 	for rows.Next() {
 		var p models.PaymentRequest
-		err := rows.Scan(&p.ID, &p.CompanyID, &p.TariffPlanID, &p.SMSCount, &p.ECPCount, &p.TotalAmount, &p.Status, &p.PaymentURL, &p.PaymentRef, &p.CreatedAt, &p.PaidAt, &p.CompanyName)
+		err := rows.Scan(&p.ID, &p.CompanyID, &p.TariffPlanID, &p.SMSCount, &p.ECPCount, &p.TotalAmount, &p.Status, &p.PaymentURL, &p.PaymentRef, &p.CreatedAt, &p.PaidAt, &p.CompanyName, &p.CompanyIIN)
 		if err != nil {
 			return nil, err
 		}
@@ -83,7 +83,7 @@ func (r *PaymentRequestRepository) GetAll(ctx context.Context, opts PaymentReque
                 SELECT
                         pr.id, pr.company_id, pr.tariff_plan_id, pr.sms_count, pr.ecp_count,
                         pr.total_amount, pr.status, pr.payment_url, pr.payment_ref,
-                        pr.created_at, pr.paid_at, c.name
+                        pr.created_at, pr.paid_at, c.name, c.iin
                 FROM payment_requests pr
                 LEFT JOIN companies c ON pr.company_id = c.id
                 WHERE pr.id <= ?`
@@ -94,6 +94,7 @@ func (r *PaymentRequestRepository) GetAll(ctx context.Context, opts PaymentReque
 		query += ` AND (
                         CAST(pr.id AS CHAR) LIKE ? OR
                         c.name LIKE ? OR
+                        c.iin LIKE ? OR
                         CAST(pr.sms_count AS CHAR) LIKE ? OR
                         CAST(pr.ecp_count AS CHAR) LIKE ? OR
                         CAST(pr.total_amount AS CHAR) LIKE ? OR
@@ -102,7 +103,7 @@ func (r *PaymentRequestRepository) GetAll(ctx context.Context, opts PaymentReque
                         DATE_FORMAT(pr.created_at, '%Y-%m-%d') LIKE ? OR
                         DATE_FORMAT(pr.paid_at, '%Y-%m-%d') LIKE ?
                 )`
-		args = append(args, s, s, s, s, s, s, s, s, s)
+		args = append(args, s, s, s, s, s, s, s, s, s, s)
 	}
 	if opts.Status != "" {
 		query += " AND pr.status = ?"
@@ -143,7 +144,7 @@ func (r *PaymentRequestRepository) GetAll(ctx context.Context, opts PaymentReque
 		err := rows.Scan(
 			&p.ID, &p.CompanyID, &p.TariffPlanID, &p.SMSCount, &p.ECPCount,
 			&p.TotalAmount, &p.Status, &p.PaymentURL, &p.PaymentRef,
-			&p.CreatedAt, &p.PaidAt, &p.CompanyName,
+			&p.CreatedAt, &p.PaidAt, &p.CompanyName, &p.CompanyIIN,
 		)
 		if err != nil {
 			log.Printf("scan error: %v", err)

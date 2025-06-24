@@ -69,3 +69,20 @@ func (h *CompanyBalanceHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 }
+
+func (h *CompanyBalanceHandler) Exchange(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		CompanyID int    `json:"company_id"`
+		From      string `json:"from"`
+		Amount    int    `json:"amount"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.CompanyID == 0 || req.Amount <= 0 {
+		http.Error(w, "invalid input", http.StatusBadRequest)
+		return
+	}
+	if err := h.Service.Exchange(req.CompanyID, req.From, req.Amount); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}

@@ -12,4 +12,5 @@ type Signature struct {
 	SignFilePath string `json:"sign_file_path,omitempty"`
 	TemplateName string `json:"template_name,omitempty"`
 	CompanyName  string `json:"company_name,omitempty"`
+	CompanyIIN   string `json:"company_iin,omitempty"`
 }

@@ -15,4 +15,5 @@ type PaymentRequest struct {
 	CreatedAt    time.Time  `json:"created_at"`
 	PaidAt       *time.Time `json:"paid_at,omitempty"`
 	CompanyName  string     `json:"company_name,omitempty"`
+	CompanyIIN   string     `json:"company_iin,omitempty"`
 }

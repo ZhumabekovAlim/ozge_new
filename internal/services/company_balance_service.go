@@ -36,3 +36,7 @@ func (s *CompanyBalanceService) Update(cb *models.CompanyBalance) error {
 func (s *CompanyBalanceService) Delete(companyID int) error {
 	return s.Repo.Delete(companyID)
 }
+
+func (s *CompanyBalanceService) Exchange(companyID int, from string, amount int) error {
+	return s.Repo.Exchange(companyID, from, amount)
+}
