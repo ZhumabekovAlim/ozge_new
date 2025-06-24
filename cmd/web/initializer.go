@@ -72,7 +72,7 @@ func initializeApp(cfg config.Config, db *sql.DB, errorLog, infoLog *log.Logger)
 	tariffPlanHandler := handlers.NewTariffPlanHandler(tariffPlanService)
 
 	paymentRepo := repository.NewPaymentRequestRepository(db)
-	paymentService := service.NewPaymentRequestService(paymentRepo, tariffPlanRepo)
+	paymentService := service.NewPaymentRequestService(paymentRepo, tariffPlanRepo, companyBalanceRepo)
 	paymentHandler := handlers.NewPaymentRequestHandler(paymentService)
 
 	smsService := service.NewSMSService(cfg.Mobizon.APIKey)
