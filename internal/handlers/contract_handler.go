@@ -31,6 +31,9 @@ func (h *ContractHandler) Create(w http.ResponseWriter, r *http.Request) {
 	templateID, _ := strconv.Atoi(r.FormValue("template_id"))
 	method := r.FormValue("method")
 	serialNumber := r.FormValue("serial_number")
+	if serialNumber == "" {
+		serialNumber = "0"
+	}
 	clientFilled := r.FormValue("client_filled") == "true"
 	companySign := r.FormValue("company_sign") == "true" || r.FormValue("company_sign") == "1"
 
@@ -163,6 +166,9 @@ func (h *ContractHandler) CreateWithFields(w http.ResponseWriter, r *http.Reques
 	templateID, _ := strconv.Atoi(r.FormValue("template_id"))
 	method := r.FormValue("method")
 	serialNumber := r.FormValue("serial_number")
+	if serialNumber == "" {
+		serialNumber = "0"
+	}
 	clientFilled := r.FormValue("client_filled") == "true"
 	companySign := r.FormValue("company_sign") == "true" || r.FormValue("company_sign") == "1"
 
