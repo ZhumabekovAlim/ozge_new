@@ -128,27 +128,32 @@ func (r *PaymentRequestRepository) GetAll(ctx context.Context, opts PaymentReque
 		args = append(args, opts.Status)
 	}
 
-	orderBy := "pr.id"
-	switch opts.SortBy {
-	case "company_name":
-		orderBy = "c.name"
-	case "total_amount":
-		orderBy = "pr.total_amount"
-	case "created_at":
-		orderBy = "pr.created_at"
-	}
-
-	order := "ASC"
-	if strings.ToUpper(opts.Order) == "DESC" {
-		order = "DESC"
-	}
-
 	if opts.Limit == 0 {
 		opts.Limit = 20
 	}
 
-	query += " ORDER BY " + orderBy + " " + order + " LIMIT ?"
-	args = append(args, opts.Limit)
+	if opts.SortBy == "" && opts.Order == "" {
+		query += " ORDER BY CASE WHEN pr.status = 'pending' THEN 0 ELSE 1 END, pr.created_at DESC LIMIT ?"
+		args = append(args, opts.Limit)
+	} else {
+		orderBy := "pr.id"
+		switch opts.SortBy {
+		case "company_name":
+			orderBy = "c.name"
+		case "total_amount":
+			orderBy = "pr.total_amount"
+		case "created_at":
+			orderBy = "pr.created_at"
+		}
+
+		order := "ASC"
+		if strings.ToUpper(opts.Order) == "DESC" {
+			order = "DESC"
+		}
+
+		query += " ORDER BY " + orderBy + " " + order + " LIMIT ?"
+		args = append(args, opts.Limit)
+	}
 
 	rows, err := r.DB.QueryContext(ctx, query, args...)
 	if err != nil {

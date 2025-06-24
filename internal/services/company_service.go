@@ -6,17 +6,32 @@ import (
 )
 
 type CompanyService struct {
-	Repo *repositories.CompanyRepository
+	Repo        *repositories.CompanyRepository
+	BalanceRepo *repositories.CompanyBalanceRepository
 }
 
 type CompanyListOptions = repositories.CompanyQueryOptions
 
-func NewCompanyService(repo *repositories.CompanyRepository) *CompanyService {
-	return &CompanyService{Repo: repo}
+func NewCompanyService(repo *repositories.CompanyRepository, balanceRepo *repositories.CompanyBalanceRepository) *CompanyService {
+	return &CompanyService{Repo: repo, BalanceRepo: balanceRepo}
 }
 
 func (s *CompanyService) Register(c *models.Company) (models.Company, error) {
-	return s.Repo.SignUp(*c)
+	company, err := s.Repo.SignUp(*c)
+	if err != nil {
+		return models.Company{}, err
+	}
+	if s.BalanceRepo != nil {
+		balance := &models.CompanyBalance{
+			CompanyID:     company.ID,
+			SMSSignatures: 2,
+			ECPSignatures: 2,
+		}
+		if err := s.BalanceRepo.Create(balance); err != nil {
+			return models.Company{}, err
+		}
+	}
+	return company, nil
 }
 
 func (s *CompanyService) Login(login, password string) (models.Company, error) {
