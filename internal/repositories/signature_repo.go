@@ -105,7 +105,8 @@ func (r *SignatureRepository) GetSignaturesAll(opts models.SignatureQueryOptions
             status,
             s.signed_at,
             s.sign_file_path,
-            co.name
+            co.name,
+            co.iin
         FROM signatures s
         LEFT JOIN contracts c ON c.id = s.contract_id
         LEFT JOIN templates t ON t.id = c.template_id
@@ -124,12 +125,13 @@ func (r *SignatureRepository) GetSignaturesAll(opts models.SignatureQueryOptions
                 s.client_phone LIKE ? OR
                 t.name LIKE ? OR
                 co.name LIKE ? OR
+                co.iin LIKE ? OR
                 s.method LIKE ? OR
                 CAST(status AS CHAR) LIKE ? OR
                 DATE_FORMAT(s.signed_at, '%Y-%m-%d') LIKE ?
             )
         `)
-		args = append(args, s, s, s, s, s, s, s, s)
+		args = append(args, s, s, s, s, s, s, s, s, s)
 	}
 
 	if opts.Status != nil {
@@ -216,6 +218,7 @@ func (r *SignatureRepository) GetSignaturesAll(opts models.SignatureQueryOptions
 			&s.SignedAt,
 			&s.SignFilePath,
 			&s.CompanyName,
+			&s.CompanyIIN,
 		)
 		if err != nil {
 			return nil, err

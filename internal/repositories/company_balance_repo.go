@@ -60,3 +60,20 @@ func (r *CompanyBalanceRepository) SubtractSignature(companyID int, method strin
 	}
 	return nil
 }
+
+func (r *CompanyBalanceRepository) Exchange(companyID int, from string, amount int) error {
+	var query string
+	if from == "sms" {
+		query = `UPDATE company_balances SET sms_signatures = sms_signatures - ?, ecp_signatures = ecp_signatures + ? WHERE company_id = ? AND sms_signatures >= ?`
+	} else if from == "ecp" {
+		query = `UPDATE company_balances SET ecp_signatures = ecp_signatures - ?, sms_signatures = sms_signatures + ? WHERE company_id = ? AND ecp_signatures >= ?`
+	} else {
+		return errors.New("invalid type")
+	}
+	res, err := r.DB.Exec(query, amount, amount, companyID, amount)
+	affected, _ := res.RowsAffected()
+	if err != nil || affected == 0 {
+		return errors.New("insufficient balance")
+	}
+	return nil
+}

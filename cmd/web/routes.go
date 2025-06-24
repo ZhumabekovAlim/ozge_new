@@ -62,6 +62,7 @@ func (app *application) routes() http.Handler {
 	mux.Get("/company-balances/:id", standardMiddleware.ThenFunc(app.companyBalanceHandler.GetByCompanyID))
 	mux.Put("/company-balances/:id", standardMiddleware.ThenFunc(app.companyBalanceHandler.Update))
 	mux.Del("/company-balances/:id", standardMiddleware.ThenFunc(app.companyBalanceHandler.Delete))
+	mux.Post("/company-balances/exchange", standardMiddleware.ThenFunc(app.companyBalanceHandler.Exchange))
 
 	mux.Post("/tariff-plans", standardMiddleware.ThenFunc(app.tariffPlanHandler.Create))
 	mux.Get("/tariff-plans", standardMiddleware.ThenFunc(app.tariffPlanHandler.GetAll))
