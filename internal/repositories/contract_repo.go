@@ -14,8 +14,8 @@ func NewContractRepository(db *sql.DB) *ContractRepository {
 }
 
 func (r *ContractRepository) Create(c *models.Contract) error {
-	query := `INSERT INTO contracts (company_id, template_id, contract_token, generated_file_path, client_filled, method, company_sign, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`
-	result, err := r.DB.Exec(query, c.CompanyID, c.TemplateID, c.ContractToken, c.GeneratedPDFPath, c.ClientFilled, c.Method, c.CompanySign)
+	query := `INSERT INTO contracts (company_id, template_id, contract_token, serial_number, generated_file_path, client_filled, method, company_sign, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`
+	result, err := r.DB.Exec(query, c.CompanyID, c.TemplateID, c.ContractToken, c.SerialNumber, c.GeneratedPDFPath, c.ClientFilled, c.Method, c.CompanySign)
 	if err != nil {
 		return err
 	}
@@ -28,10 +28,10 @@ func (r *ContractRepository) Create(c *models.Contract) error {
 }
 
 func (r *ContractRepository) GetByID(id int) (*models.Contract, error) {
-	query := `SELECT id, company_id, template_id, contract_token, generated_file_path, client_filled, method, company_sign, created_at FROM contracts WHERE id = ?`
+	query := `SELECT id, company_id, template_id, contract_token, serial_number, generated_file_path, client_filled, method, company_sign, created_at FROM contracts WHERE id = ?`
 	row := r.DB.QueryRow(query, id)
 	var c models.Contract
-	err := row.Scan(&c.ID, &c.CompanyID, &c.TemplateID, &c.ContractToken, &c.GeneratedPDFPath, &c.ClientFilled, &c.Method, &c.CompanySign, &c.CreatedAt)
+	err := row.Scan(&c.ID, &c.CompanyID, &c.TemplateID, &c.ContractToken, &c.SerialNumber, &c.GeneratedPDFPath, &c.ClientFilled, &c.Method, &c.CompanySign, &c.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -39,12 +39,12 @@ func (r *ContractRepository) GetByID(id int) (*models.Contract, error) {
 }
 
 func (r *ContractRepository) GetByToken(token string) (*models.Contract, error) {
-	query := `SELECT contracts.id, company_id, template_id, contract_token, generated_file_path, client_filled, method, company_sign, created_at, companies.name, companies.iin FROM contracts 
+	query := `SELECT contracts.id, company_id, template_id, contract_token, serial_number, generated_file_path, client_filled, method, company_sign, created_at, companies.name, companies.iin FROM contracts
                 JOIN companies ON contracts.company_id = companies.id                                                                                                    
             	WHERE contract_token = ?`
 	row := r.DB.QueryRow(query, token)
 	var c models.Contract
-	err := row.Scan(&c.ID, &c.CompanyID, &c.TemplateID, &c.ContractToken, &c.GeneratedPDFPath, &c.ClientFilled, &c.Method, &c.CompanySign, &c.CreatedAt, &c.CompanyName, &c.CompanyIIN)
+	err := row.Scan(&c.ID, &c.CompanyID, &c.TemplateID, &c.ContractToken, &c.SerialNumber, &c.GeneratedPDFPath, &c.ClientFilled, &c.Method, &c.CompanySign, &c.CreatedAt, &c.CompanyName, &c.CompanyIIN)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (r *ContractRepository) GetByToken(token string) (*models.Contract, error) 
 }
 
 func (r *ContractRepository) GetByCompanyID(companyID int) ([]models.Contract, error) {
-	rows, err := r.DB.Query(`SELECT id, company_id, template_id, contract_token, generated_file_path, client_filled, method, company_sign, created_at FROM contracts WHERE company_id = ?`, companyID)
+	rows, err := r.DB.Query(`SELECT id, company_id, template_id, contract_token, serial_number, generated_file_path, client_filled, method, company_sign, created_at FROM contracts WHERE company_id = ?`, companyID)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (r *ContractRepository) GetByCompanyID(companyID int) ([]models.Contract, e
 	var contracts []models.Contract
 	for rows.Next() {
 		var c models.Contract
-		err := rows.Scan(&c.ID, &c.CompanyID, &c.TemplateID, &c.ContractToken, &c.GeneratedPDFPath, &c.ClientFilled, &c.Method, &c.CompanySign, &c.CreatedAt)
+		err := rows.Scan(&c.ID, &c.CompanyID, &c.TemplateID, &c.ContractToken, &c.SerialNumber, &c.GeneratedPDFPath, &c.ClientFilled, &c.Method, &c.CompanySign, &c.CreatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -82,9 +82,9 @@ func (r *ContractRepository) Delete(id int) error {
 }
 
 func (r *ContractRepository) CreateTx(tx *sql.Tx, c *models.Contract) (int, error) {
-	query := `INSERT INTO contracts (company_id, template_id, contract_token, generated_file_path, client_filled, method, company_sign, created_at)
-              VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`
-	res, err := tx.Exec(query, c.CompanyID, c.TemplateID, c.ContractToken, c.GeneratedPDFPath, c.ClientFilled, c.Method, c.CompanySign)
+	query := `INSERT INTO contracts (company_id, template_id, contract_token, serial_number, generated_file_path, client_filled, method, company_sign, created_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`
+	res, err := tx.Exec(query, c.CompanyID, c.TemplateID, c.ContractToken, c.SerialNumber, c.GeneratedPDFPath, c.ClientFilled, c.Method, c.CompanySign)
 	if err != nil {
 		return 0, err
 	}
