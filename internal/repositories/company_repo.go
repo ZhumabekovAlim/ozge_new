@@ -267,3 +267,19 @@ func (r *CompanyRepository) Delete(id int) error {
 	_, err := r.DB.Exec(`DELETE FROM companies WHERE id = ?`, id)
 	return err
 }
+
+func (r *CompanyRepository) UpdatePassword(id int, oldPassword, newPassword string) error {
+	var hashed string
+	if err := r.DB.QueryRow("SELECT password FROM companies WHERE id = ?", id).Scan(&hashed); err != nil {
+		return err
+	}
+	if bcrypt.CompareHashAndPassword([]byte(hashed), []byte(oldPassword)) != nil {
+		return errors.New("invalid password")
+	}
+	newHashed, err := bcrypt.GenerateFromPassword([]byte(newPassword), 12)
+	if err != nil {
+		return err
+	}
+	_, err = r.DB.Exec("UPDATE companies SET password=? WHERE id=?", newHashed, id)
+	return err
+}

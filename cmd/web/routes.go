@@ -21,6 +21,7 @@ func (app *application) routes() http.Handler {
 	mux.Get("/companies/phone/:phone", standardMiddleware.ThenFunc(app.companyHandler.GetByPhone))
 	mux.Put("/companies/:id", standardMiddleware.ThenFunc(app.companyHandler.Update))
 	mux.Del("/companies/:id", standardMiddleware.ThenFunc(app.companyHandler.Delete))
+	mux.Post("/companies/:id/change-password", standardMiddleware.ThenFunc(app.companyHandler.ChangePassword))
 
 	mux.Post("/templates/upload", standardMiddleware.ThenFunc(app.templateHandler.Upload))
 	mux.Get("/templates/:id", standardMiddleware.ThenFunc(app.templateHandler.GetByID))
