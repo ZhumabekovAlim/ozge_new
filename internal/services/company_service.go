@@ -60,3 +60,7 @@ func (s *CompanyService) Update(c *models.Company) error {
 func (s *CompanyService) Delete(id int) error {
 	return s.Repo.Delete(id)
 }
+
+func (s *CompanyService) ChangePassword(id int, oldPassword, newPassword string) error {
+	return s.Repo.UpdatePassword(id, oldPassword, newPassword)
+}

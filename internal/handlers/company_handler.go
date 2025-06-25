@@ -199,3 +199,27 @@ func (h *CompanyHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 }
+
+func (h *CompanyHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get(":id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "invalid company ID", http.StatusBadRequest)
+		return
+	}
+
+	var input struct {
+		OldPassword string `json:"old_password"`
+		NewPassword string `json:"new_password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil || input.OldPassword == "" || input.NewPassword == "" {
+		http.Error(w, "invalid input", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.Service.ChangePassword(id, input.OldPassword, input.NewPassword); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
