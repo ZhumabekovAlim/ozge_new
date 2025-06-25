@@ -50,7 +50,7 @@ func initializeApp(cfg config.Config, db *sql.DB, errorLog, infoLog *log.Logger)
 
 	// Signatures
 	signatureRepo := repository.NewSignatureRepository(db)
-	signatureService := service.NewSignatureService(signatureRepo, contractRepo)
+	signatureService := service.NewSignatureService(signatureRepo, contractRepo, companyBalanceRepo)
 	signatureFieldValueRepo := repository.NewSignatureFieldValueRepository(db)
 	signatureFieldValueService := service.NewSignatureFieldValueService(signatureFieldValueRepo)
 	signatureHandler := handlers.NewSignatureHandler(signatureService, signatureFieldValueService)
