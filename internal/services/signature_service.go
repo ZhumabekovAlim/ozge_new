@@ -13,10 +13,15 @@ type SignatureService struct {
 
 type SignatureListOptions = models.SignatureQueryOptions
 
-func NewSignatureService(repo *repositories.SignatureRepository, contractRepo *repositories.ContractRepository) *SignatureService {
+func NewSignatureService(
+	repo *repositories.SignatureRepository,
+	contractRepo *repositories.ContractRepository,
+	balanceRepo *repositories.CompanyBalanceRepository,
+) *SignatureService {
 	return &SignatureService{
 		Repo:         repo,
 		ContractRepo: contractRepo,
+		BalanceRepo:  balanceRepo,
 	}
 }
 
@@ -30,6 +35,17 @@ func (s *SignatureService) UpdateSignFilePath(signatureID int, path string) erro
 }
 
 func (s *SignatureService) Create(sig *models.Signature) (int, error) {
+	// Before creating a signature, try to subtract balance
+	if s.BalanceRepo != nil {
+		contract, err := s.ContractRepo.GetByID(sig.ContractID)
+		if err != nil {
+			return 0, err
+		}
+		if err := s.BalanceRepo.SubtractSignature(contract.CompanyID, sig.Method); err != nil {
+			return 0, err
+		}
+	}
+
 	return s.Repo.Create(sig)
 }
 
