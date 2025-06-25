@@ -7,7 +7,7 @@ import (
 	"errors"
 )
 
-const SIGNATURE_PRICE = 100.0
+const SIGNATURE_PRICE = 500.0
 
 type PaymentRequestService struct {
 	Repo        *repositories.PaymentRequestRepository
