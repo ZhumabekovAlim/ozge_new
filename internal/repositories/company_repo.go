@@ -146,7 +146,7 @@ func (r *CompanyRepository) ExistsByPhone(phone string) (bool, error) {
 	var id int
 	err := r.DB.QueryRow("SELECT id FROM companies WHERE phone = ?", phone).Scan(&id)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
 		}
 		return false, err

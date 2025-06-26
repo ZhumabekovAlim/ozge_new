@@ -161,22 +161,35 @@ func (h *CompanyHandler) GetByPhone(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(company)
 }
 
-// GET /companies/check-phone/:phone
+type CheckPhoneRequest struct {
+	Phone string `json:"phone"`
+}
+
 func (h *CompanyHandler) CheckPhone(w http.ResponseWriter, r *http.Request) {
-	phone := r.URL.Query().Get(":phone")
-	if phone == "" {
+	var req CheckPhoneRequest
+
+	// Парсим JSON из тела запроса
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.Phone == "" {
 		http.Error(w, "phone required", http.StatusBadRequest)
 		return
 	}
-	exists, err := h.Service.PhoneExists(phone)
+
+	exists, err := h.Service.PhoneExists(req.Phone)
 	if err != nil {
 		http.Error(w, "server error", http.StatusInternalServerError)
 		return
 	}
+
 	if !exists {
 		http.Error(w, "company not found", http.StatusNotFound)
 		return
 	}
+
 	w.WriteHeader(http.StatusOK)
 }
 
