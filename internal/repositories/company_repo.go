@@ -283,3 +283,12 @@ func (r *CompanyRepository) UpdatePassword(id int, oldPassword, newPassword stri
 	_, err = r.DB.Exec("UPDATE companies SET password=? WHERE id=?", newHashed, id)
 	return err
 }
+
+func (r *CompanyRepository) ResetPassword(id int, newPassword string) error {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(newPassword), 12)
+	if err != nil {
+		return err
+	}
+	_, err = r.DB.Exec("UPDATE companies SET password=? WHERE id=?", hashed, id)
+	return err
+}

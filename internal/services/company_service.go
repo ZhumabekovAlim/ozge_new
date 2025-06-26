@@ -3,6 +3,8 @@ package services
 import (
 	"OzgeContract/internal/models"
 	"OzgeContract/internal/repositories"
+	"math/rand"
+	"time"
 )
 
 type CompanyService struct {
@@ -63,4 +65,22 @@ func (s *CompanyService) Delete(id int) error {
 
 func (s *CompanyService) ChangePassword(id int, oldPassword, newPassword string) error {
 	return s.Repo.UpdatePassword(id, oldPassword, newPassword)
+}
+
+func generatePassword(n int) string {
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, n)
+	rand.Seed(time.Now().UnixNano())
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
+}
+
+func (s *CompanyService) ResetPassword(id int) (string, error) {
+	newPassword := generatePassword(8)
+	if err := s.Repo.ResetPassword(id, newPassword); err != nil {
+		return "", err
+	}
+	return newPassword, nil
 }

@@ -223,3 +223,21 @@ func (h *CompanyHandler) ChangePassword(w http.ResponseWriter, r *http.Request) 
 	}
 	w.WriteHeader(http.StatusOK)
 }
+
+func (h *CompanyHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get(":id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "invalid company ID", http.StatusBadRequest)
+		return
+	}
+
+	newPassword, err := h.Service.ResetPassword(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"new_password": newPassword})
+}
