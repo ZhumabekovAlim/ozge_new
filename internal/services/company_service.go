@@ -67,20 +67,6 @@ func (s *CompanyService) ChangePassword(id int, oldPassword, newPassword string)
 	return s.Repo.UpdatePassword(id, oldPassword, newPassword)
 }
 
-func generatePassword(n int) string {
-	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	b := make([]byte, n)
-	rand.Seed(time.Now().UnixNano())
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-	return string(b)
-}
-
-func (s *CompanyService) ResetPassword(id int) (string, error) {
-	newPassword := generatePassword(8)
-	if err := s.Repo.ResetPassword(id, newPassword); err != nil {
-		return "", err
-	}
-	return newPassword, nil
+func (s *CompanyService) ResetPassword(id int, newPassword string) error {
+	return s.Repo.ResetPassword(id, newPassword)
 }

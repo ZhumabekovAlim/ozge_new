@@ -48,8 +48,8 @@ clean_mobile_app/
 * `POST /signatures` – create a signature for a contract. Along with standard fields you can pass a `field_values` JSON array to store values for the contract's additional fields in one request.
 
 ## Company API
+* `POST /companies/{id}/reset-password` – set a new password for a company without providing the old one. The request body is `{ "new_password": "..." }`.
 
-* `POST /companies/{id}/reset-password` – generate a new password for a company without providing the old one.
 
 ---
 

@@ -232,12 +232,20 @@ func (h *CompanyHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newPassword, err := h.Service.ResetPassword(id)
-	if err != nil {
+	var input struct {
+		NewPassword string `json:"new_password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil || input.NewPassword == "" {
+		http.Error(w, "invalid input", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.Service.ResetPassword(id, input.NewPassword); err != nil {
+
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"new_password": newPassword})
+	w.WriteHeader(http.StatusOK)
+
 }
