@@ -241,9 +241,11 @@ func (h *CompanyHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.Service.ResetPassword(id, input.NewPassword); err != nil {
+
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
+
 }
