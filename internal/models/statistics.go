@@ -9,9 +9,9 @@ type LastSignedContract struct {
 }
 
 type CompanyStats struct {
-	CompanyID       int                  `json:"company_id"`
-	TotalSigned     int                  `json:"total_signed"`
-	ActiveContracts int                  `json:"active_contracts"`
-	SignedThisMonth int                  `json:"signed_this_month"`
-	LastSigned      []LastSignedContract `json:"last_signed_contracts"`
+	CompanyID        int                  `json:"company_id"`
+	TotalSigned      int                  `json:"total_signed"`
+	UniqueSignatures int                  `json:"unique_signatures"`
+	SignedThisMonth  int                  `json:"signed_this_month"`
+	LastSigned       []LastSignedContract `json:"last_signed_contracts"`
 }
