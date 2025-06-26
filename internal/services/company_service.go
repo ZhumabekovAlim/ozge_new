@@ -3,8 +3,6 @@ package services
 import (
 	"OzgeContract/internal/models"
 	"OzgeContract/internal/repositories"
-	"math/rand"
-	"time"
 )
 
 type CompanyService struct {
