@@ -47,6 +47,10 @@ clean_mobile_app/
 * `GET /contracts/token/{token}/details` – retrieve a contract by token along with its signing method, `company_sign` status and list of additional fields.
 * `POST /signatures` – create a signature for a contract. Along with standard fields you can pass a `field_values` JSON array to store values for the contract's additional fields in one request.
 
+## Company API
+
+* `POST /companies/{id}/reset-password` – set a new password for a company without providing the old one. The request body is `{ "new_password": "..." }`.
+
 ---
 
 ## 🛠️ Installation

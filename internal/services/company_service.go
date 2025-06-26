@@ -64,3 +64,7 @@ func (s *CompanyService) Delete(id int) error {
 func (s *CompanyService) ChangePassword(id int, oldPassword, newPassword string) error {
 	return s.Repo.UpdatePassword(id, oldPassword, newPassword)
 }
+
+func (s *CompanyService) ResetPassword(id int, newPassword string) error {
+	return s.Repo.ResetPassword(id, newPassword)
+}
