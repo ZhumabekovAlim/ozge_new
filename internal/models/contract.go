@@ -13,6 +13,7 @@ type Contract struct {
 	CreatedAt        string `json:"created_at"`
 	CompanyName      string `json:"company_name,omitempty"`
 	CompanyIIN       string `json:"company_iin,omitempty"`
+	CompanyPhone     string `json:"company_phone,omitempty"`
 }
 
 type CreateContractRequest struct {
