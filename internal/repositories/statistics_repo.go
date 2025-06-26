@@ -26,12 +26,12 @@ func (r *StatisticsRepository) GetCompanyStats(companyID int) (*models.CompanySt
 		return nil, err
 	}
 
-	// 2. Активные контракты (без подписей)
+	// 2. Уникальные подписи по client_iin
 	err = r.DB.QueryRow(`
-		SELECT COUNT(c.id)
-		FROM contracts c
-		LEFT JOIN signatures s ON s.contract_id = c.id
-		WHERE c.company_id = ? AND s.id IS NULL`, companyID).Scan(&stats.ActiveContracts)
+               SELECT COUNT(DISTINCT s.client_iin)
+               FROM signatures s
+               JOIN contracts c ON s.contract_id = c.id
+               WHERE c.company_id = ?`, companyID).Scan(&stats.UniqueSignatures)
 	if err != nil {
 		return nil, err
 	}
