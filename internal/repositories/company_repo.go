@@ -142,16 +142,16 @@ func (r *CompanyRepository) FindByPhone(phone string) (*models.Company, error) {
 	return &c, nil
 }
 
-func (r *CompanyRepository) ExistsByPhone(phone string) (bool, error) {
+func (r *CompanyRepository) GetIDByPhone(phone string) (int, error) {
 	var id int
 	err := r.DB.QueryRow("SELECT id FROM companies WHERE phone = ?", phone).Scan(&id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return false, nil
+			return 0, nil // 0 значит, что компания не найдена
 		}
-		return false, err
+		return 0, err
 	}
-	return true, nil
+	return id, nil
 }
 
 func (r *CompanyRepository) FindAll(opts CompanyQueryOptions) ([]models.Company, error) {

@@ -14,6 +14,14 @@ type CompanyHandler struct {
 	Service *services.CompanyService
 }
 
+type CheckPhoneRequest struct {
+	Phone string `json:"phone"`
+}
+
+type CheckPhoneResponse struct {
+	ID int `json:"id"`
+}
+
 func NewCompanyHandler(s *services.CompanyService) *CompanyHandler {
 	return &CompanyHandler{Service: s}
 }
@@ -146,29 +154,9 @@ func (h *CompanyHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(company)
 }
 
-// GET /companies/phone/:phone
-func (h *CompanyHandler) GetByPhone(w http.ResponseWriter, r *http.Request) {
-	phone := r.URL.Query().Get(":phone")
-	if phone == "" {
-		http.Error(w, "phone required", http.StatusBadRequest)
-		return
-	}
-	company, err := h.Service.GetByPhone(phone)
-	if err != nil {
-		http.Error(w, "company not found", http.StatusNotFound)
-		return
-	}
-	json.NewEncoder(w).Encode(company)
-}
-
-type CheckPhoneRequest struct {
-	Phone string `json:"phone"`
-}
-
 func (h *CompanyHandler) CheckPhone(w http.ResponseWriter, r *http.Request) {
 	var req CheckPhoneRequest
 
-	// Парсим JSON из тела запроса
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
@@ -179,18 +167,21 @@ func (h *CompanyHandler) CheckPhone(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exists, err := h.Service.PhoneExists(req.Phone)
+	companyID, err := h.Service.GetCompanyIDByPhone(req.Phone)
 	if err != nil {
 		http.Error(w, "server error", http.StatusInternalServerError)
 		return
 	}
 
-	if !exists {
+	if companyID == 0 {
 		http.Error(w, "company not found", http.StatusNotFound)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	resp := CheckPhoneResponse{ID: companyID}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
 }
 
 // PUT /companies/:id

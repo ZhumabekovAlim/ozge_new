@@ -53,8 +53,8 @@ func (s *CompanyService) GetByPhone(phone string) (*models.Company, error) {
 	return s.Repo.FindByPhone(phone)
 }
 
-func (s *CompanyService) PhoneExists(phone string) (bool, error) {
-	return s.Repo.ExistsByPhone(phone)
+func (s *CompanyService) GetCompanyIDByPhone(phone string) (int, error) {
+	return s.Repo.GetIDByPhone(phone)
 }
 
 func (s *CompanyService) Update(c *models.Company) error {
