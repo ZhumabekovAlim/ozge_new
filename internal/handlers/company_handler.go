@@ -161,6 +161,25 @@ func (h *CompanyHandler) GetByPhone(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(company)
 }
 
+// GET /companies/check-phone/:phone
+func (h *CompanyHandler) CheckPhone(w http.ResponseWriter, r *http.Request) {
+	phone := r.URL.Query().Get(":phone")
+	if phone == "" {
+		http.Error(w, "phone required", http.StatusBadRequest)
+		return
+	}
+	exists, err := h.Service.PhoneExists(phone)
+	if err != nil {
+		http.Error(w, "server error", http.StatusInternalServerError)
+		return
+	}
+	if !exists {
+		http.Error(w, "company not found", http.StatusNotFound)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 // PUT /companies/:id
 func (h *CompanyHandler) Update(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get(":id")

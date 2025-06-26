@@ -142,6 +142,18 @@ func (r *CompanyRepository) FindByPhone(phone string) (*models.Company, error) {
 	return &c, nil
 }
 
+func (r *CompanyRepository) ExistsByPhone(phone string) (bool, error) {
+	var id int
+	err := r.DB.QueryRow("SELECT id FROM companies WHERE phone = ?", phone).Scan(&id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
 func (r *CompanyRepository) FindAll(opts CompanyQueryOptions) ([]models.Company, error) {
 	var qb strings.Builder
 	var args []interface{}
