@@ -184,7 +184,7 @@ func (h *SignatureHandler) UpdateQR(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "cannot generate qr", http.StatusInternalServerError)
 			return
 		}
-		desc := "pos:bottom-right, scale:0.1, rot:0"
+		desc := "op:0.2, pos:bottom-right, scale:0.1, rot:0, off:-20 100"
 		wm, err := pdfcpu.ParseImageWatermarkDetails(qrPath, desc, false, types.POINTS)
 		if err != nil {
 			http.Error(w, "cannot parse qr watermark", http.StatusInternalServerError)
