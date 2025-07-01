@@ -60,11 +60,18 @@ func (r *SignatureRepository) GetByContractID(contractID int) (*models.Signature
 }
 
 func (r *SignatureRepository) GetContractsByCompanyID(companyID int) ([]models.Signature, error) {
-	query := `SELECT s.id, t.name, client_name, client_iin, signed_at, sign_file_path, status FROM signatures s
-    LEFT JOIN contracts c on c.id = s.contract_id
-    LEFT JOIN templates t on t.id = c.template_id
-    LEFT JOIN signature_field_values sfv on s.id = sfv.signature_id
-    WHERE c.company_id = ?`
+	query := `SELECT IFNULL(s.id, 0) AS signature_id,
+        c.id AS contract_id,
+        t.name,
+        IFNULL(s.client_name, ''),
+        IFNULL(s.client_iin, ''),
+        IFNULL(DATE_FORMAT(s.signed_at, '%Y-%m-%d %H:%i:%s'), ''),
+        IFNULL(s.sign_file_path, ''),
+        IFNULL(s.status, 0)
+        FROM contracts c
+        LEFT JOIN signatures s ON c.id = s.contract_id
+        LEFT JOIN templates t ON t.id = c.template_id
+        WHERE c.company_id = ?`
 
 	rows, err := r.DB.Query(query, companyID)
 	if err != nil {
@@ -75,7 +82,16 @@ func (r *SignatureRepository) GetContractsByCompanyID(companyID int) ([]models.S
 	var signatures []models.Signature
 	for rows.Next() {
 		var s models.Signature
-		err := rows.Scan(&s.ID, &s.TemplateName, &s.ClientName, &s.ClientIIN, &s.SignedAt, &s.SignFilePath, &s.Status)
+		err := rows.Scan(
+			&s.ID,
+			&s.ContractID,
+			&s.TemplateName,
+			&s.ClientName,
+			&s.ClientIIN,
+			&s.SignedAt,
+			&s.SignFilePath,
+			&s.Status,
+		)
 		if err != nil {
 			return nil, err
 		}

@@ -5,6 +5,10 @@ import (
 	"OzgeContract/internal/services"
 	"encoding/json"
 	"fmt"
+	"github.com/pdfcpu/pdfcpu/pkg/api"
+	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu"
+	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/types"
+	"github.com/skip2/go-qrcode"
 	"io"
 	"log"
 	"net/http"
@@ -171,6 +175,31 @@ func (h *SignatureHandler) UpdateQR(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sig.SignFilePath = signedPDF
+
+	// --- QR generation and watermarking
+	qrLink := r.FormValue("qr_link")
+	if qrLink != "" {
+		qrPath := filepath.Join(signDir, fmt.Sprintf("qr_%d.png", sig.ID))
+		if err := qrcode.WriteFile(qrLink, qrcode.Medium, 128, qrPath); err != nil {
+			http.Error(w, "cannot generate qr", http.StatusInternalServerError)
+			return
+		}
+		desc := "pos:bottom-right, scale:0.1, rot:0"
+		wm, err := pdfcpu.ParseImageWatermarkDetails(qrPath, desc, false, types.POINTS)
+		if err != nil {
+			http.Error(w, "cannot parse qr watermark", http.StatusInternalServerError)
+			return
+		}
+		tmpPDF := filepath.Join(signDir, fmt.Sprintf("tmp_%d.pdf", sig.ID))
+		if err := api.AddWatermarksFile(signedPDF, tmpPDF, []string{"1-"}, wm, nil); err != nil {
+			http.Error(w, "cannot add qr", http.StatusInternalServerError)
+			return
+		}
+		_ = os.Remove(signedPDF)
+		_ = os.Rename(tmpPDF, signedPDF)
+		_ = os.Remove(qrPath)
+		sig.SignFilePath = signedPDF
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(sig)
