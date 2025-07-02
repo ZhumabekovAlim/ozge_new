@@ -61,7 +61,7 @@ func (r *SignatureRepository) GetByContractID(contractID int) (*models.Signature
 
 func (r *SignatureRepository) GetContractsByCompanyID(companyID int) ([]models.Signature, error) {
 	query := `SELECT
-    IFNULL(s.id, 0) AS signature_id,
+    IFNULL(s.id, c.id) AS signature_id,
     c.id AS contract_id,
     t.name,
     IFNULL(s.client_name, '') AS client_name,
