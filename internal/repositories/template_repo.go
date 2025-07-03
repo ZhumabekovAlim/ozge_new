@@ -14,15 +14,15 @@ func NewTemplateRepository(db *sql.DB) *TemplateRepository {
 }
 
 func (r *TemplateRepository) Create(t *models.Template) error {
-	query := `INSERT INTO templates (company_id, name, file_path, created_at) VALUES (?, ?, ?, NOW())`
+	query := `INSERT INTO templates (company_id, name, file_path, status, created_at) VALUES (?, ?, ?, 1, NOW())`
 	_, err := r.DB.Exec(query, t.CompanyID, t.Name, t.FilePath)
 	return err
 }
 
 func (r *TemplateRepository) GetByID(id int) (*models.Template, error) {
 	var t models.Template
-	query := `SELECT id, company_id, name, file_path, created_at FROM templates WHERE id = ?`
-	err := r.DB.QueryRow(query, id).Scan(&t.ID, &t.CompanyID, &t.Name, &t.FilePath, &t.CreatedAt)
+	query := `SELECT id, company_id, name, file_path, status, created_at FROM templates WHERE id = ? AND status = 1`
+	err := r.DB.QueryRow(query, id).Scan(&t.ID, &t.CompanyID, &t.Name, &t.FilePath, &t.Status, &t.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func (r *TemplateRepository) GetByID(id int) (*models.Template, error) {
 }
 
 func (r *TemplateRepository) GetByCompany(companyID int) ([]models.Template, error) {
-	rows, err := r.DB.Query(`SELECT id, company_id, name, file_path, created_at FROM templates WHERE company_id = ?`, companyID)
+	rows, err := r.DB.Query(`SELECT id, company_id, name, file_path, status, created_at FROM templates WHERE company_id = ? AND status = 1`, companyID)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (r *TemplateRepository) GetByCompany(companyID int) ([]models.Template, err
 	var templates []models.Template
 	for rows.Next() {
 		var t models.Template
-		if err := rows.Scan(&t.ID, &t.CompanyID, &t.Name, &t.FilePath, &t.CreatedAt); err != nil {
+		if err := rows.Scan(&t.ID, &t.CompanyID, &t.Name, &t.FilePath, &t.Status, &t.CreatedAt); err != nil {
 			return nil, err
 		}
 		templates = append(templates, t)
@@ -54,6 +54,6 @@ func (r *TemplateRepository) Update(t *models.Template) error {
 }
 
 func (r *TemplateRepository) Delete(id int) error {
-	_, err := r.DB.Exec(`DELETE FROM templates WHERE id = ?`, id)
+	_, err := r.DB.Exec(`UPDATE templates SET status = 2 WHERE id = ?`, id)
 	return err
 }
