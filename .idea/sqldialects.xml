@@ -11,5 +11,6 @@
     <file url="file://$PROJECT_DIR$/migrations/000008_create_tariff_plans_table.up.sql" dialect="MariaDB" />
     <file url="file://$PROJECT_DIR$/migrations/000009_create_payment_requests_table.up.sql" dialect="MariaDB" />
     <file url="file://$PROJECT_DIR$/migrations/000010_add_company_sign_to_contracts.up.sql" dialect="MariaDB" />
+    <file url="file://$PROJECT_DIR$/migrations/000011_add_iin_to_companies_table.up.sql" dialect="MariaDB" />
   </component>
 </project>

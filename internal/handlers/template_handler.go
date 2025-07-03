@@ -121,7 +121,7 @@ func (h *TemplateHandler) GetByCompany(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(idStr)
 	list, err := h.Service.GetByCompany(id)
 	if err != nil {
-		http.Error(w, "cannot fetch templates", http.StatusInternalServerError)
+		http.Error(w, "cannot fetch templates", http.StatusNotFound)
 		return
 	}
 	json.NewEncoder(w).Encode(list)
