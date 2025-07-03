@@ -79,6 +79,14 @@ func (app *application) routes() http.Handler {
 	mux.Put("/payment_requests/:id", standardMiddleware.ThenFunc(app.paymentHandler.Update))
 	mux.Del("/payment_requests/:id", standardMiddleware.ThenFunc(app.paymentHandler.Delete))
 
+	mux.Post("/admins", standardMiddleware.ThenFunc(app.adminHandler.Register))
+	mux.Post("/admins/login", standardMiddleware.ThenFunc(app.adminHandler.Login))
+	mux.Get("/admins", standardMiddleware.ThenFunc(app.adminHandler.List))
+	mux.Get("/admins/:id", standardMiddleware.ThenFunc(app.adminHandler.GetByID))
+	mux.Put("/admins/:id", standardMiddleware.ThenFunc(app.adminHandler.Update))
+	mux.Del("/admins/:id", standardMiddleware.ThenFunc(app.adminHandler.Delete))
+	mux.Post("/admins/:id/change-password", standardMiddleware.ThenFunc(app.adminHandler.ChangePassword))
+
 	mux.Post("/sms/send", standardMiddleware.ThenFunc(app.smsHandler.Send))
 
 	return standardMiddleware.Then(mux)

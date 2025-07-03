@@ -27,6 +27,7 @@ type application struct {
 	tariffPlanHandler          *handlers.TariffPlanHandler
 	paymentHandler             *handlers.PaymentRequestHandler
 	smsHandler                 *handlers.SMSHandler
+	adminHandler               *handlers.AdminHandler
 }
 
 func initializeApp(cfg config.Config, db *sql.DB, errorLog, infoLog *log.Logger) *application {
@@ -75,6 +76,10 @@ func initializeApp(cfg config.Config, db *sql.DB, errorLog, infoLog *log.Logger)
 	paymentService := service.NewPaymentRequestService(paymentRepo, tariffPlanRepo, companyBalanceRepo)
 	paymentHandler := handlers.NewPaymentRequestHandler(paymentService)
 
+	adminRepo := repository.NewAdminRepository(db)
+	adminService := service.NewAdminService(adminRepo)
+	adminHandler := handlers.NewAdminHandler(adminService)
+
 	smsService := service.NewSMSService(cfg.Mobizon.APIKey)
 	smsHandler := handlers.NewSMSHandler(smsService)
 
@@ -92,6 +97,7 @@ func initializeApp(cfg config.Config, db *sql.DB, errorLog, infoLog *log.Logger)
 		tariffPlanHandler:          tariffPlanHandler,
 		paymentHandler:             paymentHandler,
 		smsHandler:                 smsHandler,
+		adminHandler:               adminHandler,
 	}
 }
 
