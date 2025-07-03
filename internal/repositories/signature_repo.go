@@ -123,7 +123,7 @@ func (r *SignatureRepository) GetSignaturesAll(opts models.SignatureQueryOptions
             s.client_iin,
             s.client_phone,
             s.method,
-            status,
+            s.status,
             s.signed_at,
             s.sign_file_path,
             co.name,
