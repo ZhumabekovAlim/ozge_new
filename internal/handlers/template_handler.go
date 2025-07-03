@@ -92,6 +92,7 @@ func (h *TemplateHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		CompanyID: companyID,
 		Name:      name,
 		FilePath:  watermarkedPath,
+		Status:    1,
 	}
 
 	if err := h.Service.Create(t); err != nil {

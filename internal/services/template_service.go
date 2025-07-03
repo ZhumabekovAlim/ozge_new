@@ -3,6 +3,7 @@ package services
 import (
 	"OzgeContract/internal/models"
 	"OzgeContract/internal/repositories"
+	"os"
 )
 
 type TemplateService struct {
@@ -30,5 +31,14 @@ func (s *TemplateService) Update(template *models.Template) error {
 }
 
 func (s *TemplateService) Delete(id int) error {
+	t, err := s.Repo.GetByID(id)
+	if err != nil {
+		return err
+	}
+	if t != nil && t.FilePath != "" {
+		if err := os.Remove(t.FilePath); err != nil && !os.IsNotExist(err) {
+			return err
+		}
+	}
 	return s.Repo.Delete(id)
 }
