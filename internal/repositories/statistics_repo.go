@@ -52,7 +52,7 @@ func (r *StatisticsRepository) GetCompanyStats(companyID int) (*models.CompanySt
 	FROM signatures s
 			 LEFT JOIN contracts c ON s.contract_id = c.id
 			 LEFT JOIN templates t ON c.template_id = t.id
-	WHERE c.company_id = 1
+	WHERE c.company_id = ?
 	ORDER BY s.id DESC
 	LIMIT 5;`, companyID)
 	if err != nil {
