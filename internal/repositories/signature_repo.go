@@ -76,7 +76,7 @@ FROM
         LEFT JOIN
     templates t ON t.id = c.template_id
 WHERE
-    c.company_id = ?;`
+    c.company_id = ? ORDER BY c.id DESC ;`
 
 	rows, err := r.DB.Query(query, companyID)
 	if err != nil {

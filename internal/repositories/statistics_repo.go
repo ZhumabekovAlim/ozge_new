@@ -48,13 +48,13 @@ func (r *StatisticsRepository) GetCompanyStats(companyID int) (*models.CompanySt
 
 	// 4. Последние 5 подписей
 	rows, err := r.DB.Query(`
-		SELECT c.id, s.client_name, t.name, s.signed_at
-		FROM contracts c
-		JOIN signatures s ON s.contract_id = c.id
-		JOIN templates t ON c.template_id = t.id
-		WHERE c.company_id = ?
-		ORDER BY s.signed_at DESC
-		LIMIT 5`, companyID)
+	SELECT c.id, s.client_name, t.name, s.signed_at
+	FROM signatures s
+			 LEFT JOIN contracts c ON s.contract_id = c.id
+			 LEFT JOIN templates t ON c.template_id = t.id
+	WHERE c.company_id = 1
+	ORDER BY s.id DESC
+	LIMIT 5;`, companyID)
 	if err != nil {
 		return nil, err
 	}

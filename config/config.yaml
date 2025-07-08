@@ -6,4 +6,4 @@ database:
   url: "root:@tcp(db:3306)/ozge_contract?parseTime=true"
 
 mobizon:
-  api_key: "kzfaad0a91a4b498db593b78414dfdaa2c213b8b8996afa325a223543481efeb11dd11"
+  api_key: "kzf5354b5a1cdd0fe9b2be49831e548923b9cd897c128811f47ef57dd61cbebfba2dd3"
