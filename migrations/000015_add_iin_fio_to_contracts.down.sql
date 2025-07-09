@@ -1,0 +1,2 @@
+ALTER TABLE contracts DROP COLUMN iin;
+ALTER TABLE contracts DROP COLUMN fio;
