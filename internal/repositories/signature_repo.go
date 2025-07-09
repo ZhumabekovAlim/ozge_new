@@ -144,7 +144,6 @@ func (r *SignatureRepository) GetSignaturesAll(opts models.SignatureQueryOptions
                 CAST(s.id AS CHAR) LIKE ? OR
                 s.client_name LIKE ? OR
                 s.client_phone LIKE ? OR
-                t.name LIKE ? OR
                 co.name LIKE ? OR
                 co.iin LIKE ? OR
                 s.method LIKE ? OR
