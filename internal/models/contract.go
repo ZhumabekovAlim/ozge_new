@@ -5,8 +5,8 @@ type Contract struct {
 	CompanyID        int    `json:"company_id"`
 	TemplateID       int    `json:"template_id"`
 	ContractToken    string `json:"contract_token"`
-	IIN              string `json:"iin"`
-	FIO              string `json:"fio"`
+	IIN              string `json:"iin,omitempty"`
+	FIO              string `json:"fio,omitempty"`
 	SerialNumber     string `json:"serial_number"`
 	GeneratedPDFPath string `json:"generated_pdf_path"`
 	Method           string `json:"method"`
@@ -21,8 +21,8 @@ type Contract struct {
 type CreateContractRequest struct {
 	CompanyID        int                `json:"company_id"`
 	TemplateID       int                `json:"template_id"`
-	IIN              string             `json:"iin"`
-	FIO              string             `json:"fio"`
+	IIN              string             `json:"iin,omitempty"`
+	FIO              string             `json:"fio,omitempty"`
 	GeneratedPDFPath string             `json:"generated_pdf_path"`
 	SerialNumber     string             `json:"serial_number"`
 	ClientFilled     bool               `json:"client_filled"`
