@@ -148,7 +148,7 @@ func (r *SignatureRepository) GetSignaturesAll(opts models.SignatureQueryOptions
                 co.name LIKE ? OR
                 co.iin LIKE ? OR
                 s.method LIKE ? OR
-                CAST(status AS CHAR) LIKE ? OR
+                CAST(s.status AS CHAR) LIKE ? OR
                 DATE_FORMAT(s.signed_at, '%Y-%m-%d') LIKE ?
             )
         `)
@@ -156,7 +156,7 @@ func (r *SignatureRepository) GetSignaturesAll(opts models.SignatureQueryOptions
 	}
 
 	if opts.Status != nil {
-		qb.WriteString(" AND status = ?")
+		qb.WriteString(" AND s.status = ?")
 		args = append(args, *opts.Status)
 	}
 
