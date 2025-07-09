@@ -151,7 +151,7 @@ func (r *SignatureRepository) GetSignaturesAll(opts models.SignatureQueryOptions
                 DATE_FORMAT(s.signed_at, '%Y-%m-%d') LIKE ?
             )
         `)
-		args = append(args, s, s, s, s, s, s, s, s, s)
+		args = append(args, s, s, s, s, s, s, s, s)
 	}
 
 	if opts.Status != nil {
