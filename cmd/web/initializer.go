@@ -81,7 +81,8 @@ func initializeApp(cfg config.Config, db *sql.DB, errorLog, infoLog *log.Logger)
 	adminHandler := handlers.NewAdminHandler(adminService)
 
 	smsService := service.NewSMSService(cfg.Mobizon.APIKey)
-	smsHandler := handlers.NewSMSHandler(smsService)
+	waService := service.NewWhatsAppService(cfg.WhatsApp.Token, cfg.WhatsApp.PhoneNumberID)
+	smsHandler := handlers.NewSMSHandler(smsService, waService)
 
 	return &application{
 		errorLog:                   errorLog,

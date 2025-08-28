@@ -18,6 +18,10 @@ type Config struct {
 	Mobizon struct {
 		APIKey string `yaml:"api_key"`
 	} `yaml:"mobizon"`
+	WhatsApp struct {
+		Token         string `yaml:"token"`
+		PhoneNumberID string `yaml:"phone_number_id"`
+	} `yaml:"whatsapp"`
 }
 
 // LoadConfig loads the configuration from config.yaml

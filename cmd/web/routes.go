@@ -88,6 +88,7 @@ func (app *application) routes() http.Handler {
 	mux.Post("/admins/:id/change-password", standardMiddleware.ThenFunc(app.adminHandler.ChangePassword))
 
 	mux.Post("/sms/send", standardMiddleware.ThenFunc(app.smsHandler.Send))
+	mux.Post("/whatsapp/send", standardMiddleware.ThenFunc(app.smsHandler.SendWhatsApp))
 
 	return standardMiddleware.Then(mux)
 }

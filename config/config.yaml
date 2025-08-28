@@ -7,3 +7,7 @@ database:
 
 mobizon:
   api_key: "kzf5354b5a1cdd0fe9b2be49831e548923b9cd897c128811f47ef57dd61cbebfba2dd3"
+
+whatsapp:
+  token: "1960574584688523"
+  phone_number_id: "686358144568271"
