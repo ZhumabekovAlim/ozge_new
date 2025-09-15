@@ -55,7 +55,7 @@ func (s *WhatsAppService) SendVerificationCode(phone string) (int, error) {
 		return 0, err
 	}
 
-	endpoint := fmt.Sprintf("https://graph.facebook.com/v17.0/%s/messages", s.PhoneNumberID)
+	endpoint := fmt.Sprintf("https://graph.facebook.com/v22.0/%s/messages", s.PhoneNumberID)
 
 	req, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewBuffer(body))
 	if err != nil {

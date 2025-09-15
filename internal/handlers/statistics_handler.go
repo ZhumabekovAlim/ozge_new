@@ -36,5 +36,7 @@ func (h *StatisticsHandler) GetDashboardSummary(w http.ResponseWriter, r *http.R
 		http.Error(w, "cannot get dashboard summary", http.StatusInternalServerError)
 		return
 	}
-	w.Write(summary)
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(summary)
 }
