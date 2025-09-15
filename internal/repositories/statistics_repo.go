@@ -82,29 +82,31 @@ func (r *StatisticsRepository) GetDashboardSummary() ([]byte, error) {
         ),
         current_month AS (
                 SELECT
-                        (SELECT COUNT(*) FROM companies WHERE created_at >= curr_start AND created_at < next_start) AS companies_count,
-                        (SELECT COUNT(*) FROM signatures WHERE created_at >= curr_start AND created_at < next_start) AS signatures_count,
-                        (SELECT COUNT(*) FROM payment_requests WHERE created_at >= curr_start AND created_at < next_start) AS payments_count,
-                        (SELECT COUNT(*) FROM tariff_plans WHERE is_active = 1 AND created_at >= curr_start AND created_at < next_start) AS active_tariffs_count,
-                        (SELECT IFNULL(SUM(total_amount),0) FROM payment_requests WHERE status = 'paid' AND paid_at >= curr_start AND paid_at < next_start) AS revenue,
-                        (SELECT COUNT(*) FROM signatures WHERE signed_at IS NOT NULL AND signed_at >= curr_start AND signed_at < next_start) AS signatures_signed,
-                        (SELECT COUNT(*) FROM signatures WHERE signed_at IS NULL AND created_at >= curr_start AND created_at < next_start) AS signatures_pending,
-                        (SELECT COUNT(*) FROM payment_requests WHERE status = 'paid' AND created_at >= curr_start AND created_at < next_start) AS payments_paid,
-                        (SELECT COUNT(*) FROM payment_requests WHERE status = 'pending' AND created_at >= curr_start AND created_at < next_start) AS payments_pending
-                FROM params
+
+                        (SELECT COUNT(*) FROM companies WHERE created_at >= p.curr_start AND created_at < p.next_start) AS companies_count,
+                        (SELECT COUNT(*) FROM signatures WHERE created_at >= p.curr_start AND created_at < p.next_start) AS signatures_count,
+                        (SELECT COUNT(*) FROM payment_requests WHERE created_at >= p.curr_start AND created_at < p.next_start) AS payments_count,
+                        (SELECT COUNT(*) FROM tariff_plans WHERE is_active = 1 AND created_at >= p.curr_start AND created_at < p.next_start) AS active_tariffs_count,
+                        (SELECT IFNULL(SUM(total_amount),0) FROM payment_requests WHERE status = 'paid' AND paid_at >= p.curr_start AND paid_at < p.next_start) AS revenue,
+                        (SELECT COUNT(*) FROM signatures WHERE signed_at IS NOT NULL AND signed_at >= p.curr_start AND signed_at < p.next_start) AS signatures_signed,
+                        (SELECT COUNT(*) FROM signatures WHERE signed_at IS NULL AND created_at >= p.curr_start AND created_at < p.next_start) AS signatures_pending,
+                        (SELECT COUNT(*) FROM payment_requests WHERE status = 'paid' AND created_at >= p.curr_start AND created_at < p.next_start) AS payments_paid,
+                        (SELECT COUNT(*) FROM payment_requests WHERE status = 'pending' AND created_at >= p.curr_start AND created_at < p.next_start) AS payments_pending
+                FROM params p
         ),
         previous_month AS (
                 SELECT
-                        (SELECT COUNT(*) FROM companies WHERE created_at >= prev_start AND created_at < curr_start) AS companies_count,
-                        (SELECT COUNT(*) FROM signatures WHERE created_at >= prev_start AND created_at < curr_start) AS signatures_count,
-                        (SELECT COUNT(*) FROM payment_requests WHERE created_at >= prev_start AND created_at < curr_start) AS payments_count,
-                        (SELECT COUNT(*) FROM tariff_plans WHERE is_active = 1 AND created_at >= prev_start AND created_at < curr_start) AS active_tariffs_count,
-                        (SELECT IFNULL(SUM(total_amount),0) FROM payment_requests WHERE status = 'paid' AND paid_at >= prev_start AND paid_at < curr_start) AS revenue,
-                        (SELECT COUNT(*) FROM signatures WHERE signed_at IS NOT NULL AND signed_at >= prev_start AND signed_at < curr_start) AS signatures_signed,
-                        (SELECT COUNT(*) FROM signatures WHERE signed_at IS NULL AND created_at >= prev_start AND created_at < curr_start) AS signatures_pending,
-                        (SELECT COUNT(*) FROM payment_requests WHERE status = 'paid' AND created_at >= prev_start AND created_at < curr_start) AS payments_paid,
-                        (SELECT COUNT(*) FROM payment_requests WHERE status = 'pending' AND created_at >= prev_start AND created_at < curr_start) AS payments_pending
-                FROM params
+                        (SELECT COUNT(*) FROM companies WHERE created_at >= p.prev_start AND created_at < p.curr_start) AS companies_count,
+                        (SELECT COUNT(*) FROM signatures WHERE created_at >= p.prev_start AND created_at < p.curr_start) AS signatures_count,
+                        (SELECT COUNT(*) FROM payment_requests WHERE created_at >= p.prev_start AND created_at < p.curr_start) AS payments_count,
+                        (SELECT COUNT(*) FROM tariff_plans WHERE is_active = 1 AND created_at >= p.prev_start AND created_at < p.curr_start) AS active_tariffs_count,
+                        (SELECT IFNULL(SUM(total_amount),0) FROM payment_requests WHERE status = 'paid' AND paid_at >= p.prev_start AND paid_at < p.curr_start) AS revenue,
+                        (SELECT COUNT(*) FROM signatures WHERE signed_at IS NOT NULL AND signed_at >= p.prev_start AND signed_at < p.curr_start) AS signatures_signed,
+                        (SELECT COUNT(*) FROM signatures WHERE signed_at IS NULL AND created_at >= p.prev_start AND created_at < p.curr_start) AS signatures_pending,
+                        (SELECT COUNT(*) FROM payment_requests WHERE status = 'paid' AND created_at >= p.prev_start AND created_at < p.curr_start) AS payments_paid,
+                        (SELECT COUNT(*) FROM payment_requests WHERE status = 'pending' AND created_at >= p.prev_start AND created_at < p.curr_start) AS payments_pending
+                FROM params p
+
         )
         SELECT JSON_OBJECT(
                 'companies', curr.companies_count,
