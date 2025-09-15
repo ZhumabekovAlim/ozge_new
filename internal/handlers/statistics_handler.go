@@ -27,3 +27,14 @@ func (h *StatisticsHandler) GetCompanyStats(w http.ResponseWriter, r *http.Reque
 	}
 	json.NewEncoder(w).Encode(stats)
 }
+
+// GetDashboardSummary handles GET /dashboard/summary and returns aggregated
+// statistics in JSON format.
+func (h *StatisticsHandler) GetDashboardSummary(w http.ResponseWriter, r *http.Request) {
+	summary, err := h.Service.GetDashboardSummary()
+	if err != nil {
+		http.Error(w, "cannot get dashboard summary", http.StatusInternalServerError)
+		return
+	}
+	w.Write(summary)
+}

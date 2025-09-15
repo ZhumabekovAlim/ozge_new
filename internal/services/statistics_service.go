@@ -16,3 +16,8 @@ func NewStatisticsService(repo *repositories.StatisticsRepository) *StatisticsSe
 func (s *StatisticsService) GetCompanyStats(companyID int) (*models.CompanyStats, error) {
 	return s.Repo.GetCompanyStats(companyID)
 }
+
+// GetDashboardSummary retrieves aggregated dashboard statistics.
+func (s *StatisticsService) GetDashboardSummary() ([]byte, error) {
+	return s.Repo.GetDashboardSummary()
+}
