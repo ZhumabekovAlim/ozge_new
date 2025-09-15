@@ -59,6 +59,7 @@ func (app *application) routes() http.Handler {
 	mux.Get("/signature-fields/signature/:id", standardMiddleware.ThenFunc(app.signatureFieldValueHandler.GetBySignatureID))
 
 	mux.Get("/stats/company/:id", standardMiddleware.ThenFunc(app.statisticsHandler.GetCompanyStats))
+	mux.Get("/dashboard/summary", standardMiddleware.ThenFunc(app.statisticsHandler.GetDashboardSummary))
 
 	mux.Post("/company-balances", standardMiddleware.ThenFunc(app.companyBalanceHandler.Create))
 	mux.Get("/company-balances/:id", standardMiddleware.ThenFunc(app.companyBalanceHandler.GetByCompanyID))

@@ -71,3 +71,66 @@ func (r *StatisticsRepository) GetCompanyStats(companyID int) (*models.CompanySt
 
 	return stats, nil
 }
+
+// GetDashboardSummary returns aggregated dashboard statistics in a single JSON
+// object. All metrics are calculated inside one SQL query using CTEs.
+func (r *StatisticsRepository) GetDashboardSummary() ([]byte, error) {
+	query := `WITH params AS (
+                SELECT DATE_FORMAT(CURRENT_DATE, '%Y-%m-01') AS curr_start,
+                       DATE_FORMAT(DATE_SUB(CURRENT_DATE, INTERVAL 1 MONTH), '%Y-%m-01') AS prev_start,
+                       DATE_FORMAT(DATE_ADD(CURRENT_DATE, INTERVAL 1 MONTH), '%Y-%m-01') AS next_start
+        ),
+        current_month AS (
+                SELECT
+                        (SELECT COUNT(*) FROM companies WHERE created_at >= p.curr_start AND created_at < p.next_start) AS companies_count,
+                        (SELECT COUNT(*) FROM signatures WHERE created_at >= p.curr_start AND created_at < p.next_start) AS signatures_count,
+                        (SELECT COUNT(*) FROM payment_requests WHERE created_at >= p.curr_start AND created_at < p.next_start) AS payments_count,
+                        (SELECT COUNT(*) FROM tariff_plans WHERE is_active = 1 AND created_at >= p.curr_start AND created_at < p.next_start) AS active_tariffs_count,
+                        (SELECT IFNULL(SUM(total_amount),0) FROM payment_requests WHERE status = 'paid' AND paid_at >= p.curr_start AND paid_at < p.next_start) AS revenue,
+                        (SELECT COUNT(*) FROM signatures WHERE signed_at IS NOT NULL AND signed_at >= p.curr_start AND signed_at < p.next_start) AS signatures_signed,
+                        (SELECT COUNT(*) FROM signatures WHERE signed_at IS NULL AND created_at >= p.curr_start AND created_at < p.next_start) AS signatures_pending,
+                        (SELECT COUNT(*) FROM payment_requests WHERE status = 'paid' AND created_at >= p.curr_start AND created_at < p.next_start) AS payments_paid,
+                        (SELECT COUNT(*) FROM payment_requests WHERE status = 'pending' AND created_at >= p.curr_start AND created_at < p.next_start) AS payments_pending
+                FROM params p
+        ),
+        previous_month AS (
+                SELECT
+                        (SELECT COUNT(*) FROM companies WHERE created_at >= p.prev_start AND created_at < p.curr_start) AS companies_count,
+                        (SELECT COUNT(*) FROM signatures WHERE created_at >= p.prev_start AND created_at < p.curr_start) AS signatures_count,
+                        (SELECT COUNT(*) FROM payment_requests WHERE created_at >= p.prev_start AND created_at < p.curr_start) AS payments_count,
+                        (SELECT COUNT(*) FROM tariff_plans WHERE is_active = 1 AND created_at >= p.prev_start AND created_at < p.curr_start) AS active_tariffs_count,
+                        (SELECT IFNULL(SUM(total_amount),0) FROM payment_requests WHERE status = 'paid' AND paid_at >= p.prev_start AND paid_at < p.curr_start) AS revenue,
+                        (SELECT COUNT(*) FROM signatures WHERE signed_at IS NOT NULL AND signed_at >= p.prev_start AND signed_at < p.curr_start) AS signatures_signed,
+                        (SELECT COUNT(*) FROM signatures WHERE signed_at IS NULL AND created_at >= p.prev_start AND created_at < p.curr_start) AS signatures_pending,
+                        (SELECT COUNT(*) FROM payment_requests WHERE status = 'paid' AND created_at >= p.prev_start AND created_at < p.curr_start) AS payments_paid,
+                        (SELECT COUNT(*) FROM payment_requests WHERE status = 'pending' AND created_at >= p.prev_start AND created_at < p.curr_start) AS payments_pending
+                FROM params p
+        )
+        SELECT JSON_OBJECT(
+                'companies', curr.companies_count,
+                'signatures', curr.signatures_count,
+                'payments', curr.payments_count,
+                'active_tariffs', curr.active_tariffs_count,
+                'monthly_revenue', curr.revenue,
+                'signatures_stats', JSON_OBJECT('signed', curr.signatures_signed, 'pending', curr.signatures_pending),
+                'payments_stats', JSON_OBJECT('paid', curr.payments_paid, 'pending', curr.payments_pending),
+                'change', JSON_OBJECT(
+                        'companies', CASE WHEN prev.companies_count = 0 THEN NULL ELSE ROUND(((curr.companies_count - prev.companies_count) / prev.companies_count) * 100, 2) END,
+                        'signatures', CASE WHEN prev.signatures_count = 0 THEN NULL ELSE ROUND(((curr.signatures_count - prev.signatures_count) / prev.signatures_count) * 100, 2) END,
+                        'payments', CASE WHEN prev.payments_count = 0 THEN NULL ELSE ROUND(((curr.payments_count - prev.payments_count) / prev.payments_count) * 100, 2) END,
+                        'active_tariffs', CASE WHEN prev.active_tariffs_count = 0 THEN NULL ELSE ROUND(((curr.active_tariffs_count - prev.active_tariffs_count) / prev.active_tariffs_count) * 100, 2) END,
+                        'monthly_revenue', CASE WHEN prev.revenue = 0 THEN NULL ELSE ROUND(((curr.revenue - prev.revenue) / prev.revenue) * 100, 2) END,
+                        'signatures_signed', CASE WHEN prev.signatures_signed = 0 THEN NULL ELSE ROUND(((curr.signatures_signed - prev.signatures_signed) / prev.signatures_signed) * 100, 2) END,
+                        'signatures_pending', CASE WHEN prev.signatures_pending = 0 THEN NULL ELSE ROUND(((curr.signatures_pending - prev.signatures_pending) / prev.signatures_pending) * 100, 2) END,
+                        'payments_paid', CASE WHEN prev.payments_paid = 0 THEN NULL ELSE ROUND(((curr.payments_paid - prev.payments_paid) / prev.payments_paid) * 100, 2) END,
+                        'payments_pending', CASE WHEN prev.payments_pending = 0 THEN NULL ELSE ROUND(((curr.payments_pending - prev.payments_pending) / prev.payments_pending) * 100, 2) END
+                )
+        )
+        FROM current_month curr, previous_month prev;`
+
+	var jsonData []byte
+	if err := r.DB.QueryRow(query).Scan(&jsonData); err != nil {
+		return nil, err
+	}
+	return jsonData, nil
+}
