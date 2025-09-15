@@ -82,6 +82,7 @@ func (r *StatisticsRepository) GetDashboardSummary() ([]byte, error) {
         ),
         current_month AS (
                 SELECT
+
                         (SELECT COUNT(*) FROM companies WHERE created_at >= p.curr_start AND created_at < p.next_start) AS companies_count,
                         (SELECT COUNT(*) FROM signatures WHERE created_at >= p.curr_start AND created_at < p.next_start) AS signatures_count,
                         (SELECT COUNT(*) FROM payment_requests WHERE created_at >= p.curr_start AND created_at < p.next_start) AS payments_count,
@@ -105,6 +106,7 @@ func (r *StatisticsRepository) GetDashboardSummary() ([]byte, error) {
                         (SELECT COUNT(*) FROM payment_requests WHERE status = 'paid' AND created_at >= p.prev_start AND created_at < p.curr_start) AS payments_paid,
                         (SELECT COUNT(*) FROM payment_requests WHERE status = 'pending' AND created_at >= p.prev_start AND created_at < p.curr_start) AS payments_pending
                 FROM params p
+
         )
         SELECT JSON_OBJECT(
                 'companies', curr.companies_count,
