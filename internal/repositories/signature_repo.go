@@ -115,7 +115,7 @@ func (r *SignatureRepository) GetSignaturesAll(opts models.SignatureQueryOptions
 	var args []interface{}
 
 	qb.WriteString(`
-        SELECT
+        SELECT DISTINCT 
             s.id,
             contract_id,
             t.name,
