@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 type ContractHandler struct {
@@ -38,6 +39,9 @@ func (h *ContractHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	clientFilled := r.FormValue("client_filled") == "true"
 	companySign := r.FormValue("company_sign") == "true" || r.FormValue("company_sign") == "1"
+	companyNameECP := strings.TrimSpace(r.FormValue("company_name_ecp"))
+	binECP := strings.TrimSpace(r.FormValue("bin_ecp"))
+	typeECP := strings.TrimSpace(r.FormValue("type_ecp"))
 
 	input := models.Contract{
 		CompanyID:     companyID,
@@ -49,6 +53,16 @@ func (h *ContractHandler) Create(w http.ResponseWriter, r *http.Request) {
 		SerialNumber:  serialNumber,
 		CompanySign:   companySign,
 		ContractToken: uuid.New().String(),
+	}
+
+	if companyNameECP != "" {
+		input.CompanyNameECP = &companyNameECP
+	}
+	if binECP != "" {
+		input.BinECP = &binECP
+	}
+	if typeECP != "" {
+		input.TypeECP = &typeECP
 	}
 
 	if err := h.Service.Create(&input); err != nil {
@@ -177,6 +191,9 @@ func (h *ContractHandler) CreateWithFields(w http.ResponseWriter, r *http.Reques
 	}
 	clientFilled := r.FormValue("client_filled") == "true"
 	companySign := r.FormValue("company_sign") == "true" || r.FormValue("company_sign") == "1"
+	companyNameECP := strings.TrimSpace(r.FormValue("company_name_ecp"))
+	binECP := strings.TrimSpace(r.FormValue("bin_ecp"))
+	typeECP := strings.TrimSpace(r.FormValue("type_ecp"))
 
 	var fieldDTOs []models.ContractFieldDTO
 	if val := r.FormValue("fields"); val != "" {
@@ -193,6 +210,16 @@ func (h *ContractHandler) CreateWithFields(w http.ResponseWriter, r *http.Reques
 		SerialNumber:  serialNumber,
 		CompanySign:   companySign,
 		ContractToken: uuid.New().String(),
+	}
+
+	if companyNameECP != "" {
+		contract.CompanyNameECP = &companyNameECP
+	}
+	if binECP != "" {
+		contract.BinECP = &binECP
+	}
+	if typeECP != "" {
+		contract.TypeECP = &typeECP
 	}
 
 	fields := make([]models.ContractField, 0, len(fieldDTOs))

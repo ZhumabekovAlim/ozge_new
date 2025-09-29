@@ -1,21 +1,24 @@
 package models
 
 type Contract struct {
-	ID               int    `json:"id"`
-	CompanyID        int    `json:"company_id"`
-	TemplateID       int    `json:"template_id"`
-	ContractToken    string `json:"contract_token"`
-	IIN              string `json:"iin,omitempty"`
-	FIO              string `json:"fio,omitempty"`
-	SerialNumber     string `json:"serial_number"`
-	GeneratedPDFPath string `json:"generated_pdf_path"`
-	Method           string `json:"method"`
-	CompanySign      bool   `json:"company_sign"`
-	ClientFilled     bool   `json:"client_filled"`
-	CreatedAt        string `json:"created_at"`
-	CompanyName      string `json:"company_name,omitempty"`
-	CompanyIIN       string `json:"company_iin,omitempty"`
-	CompanyPhone     string `json:"company_phone,omitempty"`
+	ID               int     `json:"id"`
+	CompanyID        int     `json:"company_id"`
+	TemplateID       int     `json:"template_id"`
+	ContractToken    string  `json:"contract_token"`
+	IIN              string  `json:"iin,omitempty"`
+	FIO              string  `json:"fio,omitempty"`
+	SerialNumber     string  `json:"serial_number"`
+	GeneratedPDFPath string  `json:"generated_pdf_path"`
+	Method           string  `json:"method"`
+	CompanySign      bool    `json:"company_sign"`
+	ClientFilled     bool    `json:"client_filled"`
+	CreatedAt        string  `json:"created_at"`
+	CompanyNameECP   *string `json:"company_name_ecp,omitempty"`
+	BinECP           *string `json:"bin_ecp,omitempty"`
+	TypeECP          *string `json:"type_ecp,omitempty"`
+	CompanyName      string  `json:"company_name,omitempty"`
+	CompanyIIN       string  `json:"company_iin,omitempty"`
+	CompanyPhone     string  `json:"company_phone,omitempty"`
 }
 
 type CreateContractRequest struct {
@@ -28,6 +31,9 @@ type CreateContractRequest struct {
 	ClientFilled     bool               `json:"client_filled"`
 	CompanySign      bool               `json:"company_sign"`
 	Method           string             `json:"method"`
+	CompanyNameECP   *string            `json:"company_name_ecp,omitempty"`
+	BinECP           *string            `json:"bin_ecp,omitempty"`
+	TypeECP          *string            `json:"type_ecp,omitempty"`
 	Fields           []ContractFieldDTO `json:"fields"` // новая структура (без contract_id)
 }
 type ContractFieldDTO struct {

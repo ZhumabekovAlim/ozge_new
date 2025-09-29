@@ -1,0 +1,3 @@
+ALTER TABLE contracts ADD COLUMN company_name_ecp VARCHAR(255) NULL;
+ALTER TABLE contracts ADD COLUMN bin_ecp VARCHAR(20) NULL;
+ALTER TABLE contracts ADD COLUMN type_ecp VARCHAR(100) NULL;
