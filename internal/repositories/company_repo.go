@@ -165,22 +165,20 @@ func (r *CompanyRepository) FindAll(opts CompanyQueryOptions) ([]models.Company,
 		qb.WriteString(" AND (CAST(id AS CHAR) LIKE ? OR name LIKE ? OR email LIKE ? OR phone LIKE ? OR iin LIKE ?)")
 		args = append(args, s, s, s, s, s)
 	}
-
 	if opts.FilterID != nil {
 		qb.WriteString(" AND id = ?")
 		args = append(args, *opts.FilterID)
 	}
-
 	if opts.FilterName != "" {
 		qb.WriteString(" AND name LIKE ?")
 		args = append(args, "%"+opts.FilterName+"%")
 	}
-
 	if opts.FilterEmail != "" {
 		qb.WriteString(" AND email LIKE ?")
 		args = append(args, "%"+opts.FilterEmail+"%")
 	}
 
+	// Определяем поле сортировки
 	orderBy := "id"
 	switch opts.SortBy {
 	case "name":
@@ -189,40 +187,28 @@ func (r *CompanyRepository) FindAll(opts CompanyQueryOptions) ([]models.Company,
 		orderBy = "email"
 	}
 
-	order := "ASC"
-	comparator := ">="
-	if strings.ToUpper(opts.Order) == "DESC" {
-		order = "DESC"
-		comparator = "<="
-	}
-
-	// Adjust comparator for pagination direction
-	if opts.Direction == "prev" {
-		if order == "ASC" {
-			comparator = "<"
-			order = "DESC"
-		} else {
-			comparator = ">"
-			order = "ASC"
+	// Если сортируем по id — ВСЕГДА DESC + курсор по id
+	if orderBy == "id" {
+		if opts.CursorID > 0 {
+			qb.WriteString(" AND id < ?") // так как порядок DESC
+			args = append(args, opts.CursorID)
 		}
+		qb.WriteString(" ORDER BY id DESC")
 	} else {
-		if order == "ASC" {
-			comparator = ">"
-		} else {
-			comparator = "<"
+		// Для других полей — уважаем opts.Order (по умолчанию ASC)
+		order := "ASC"
+		if strings.ToUpper(opts.Order) == "DESC" {
+			order = "DESC"
 		}
-	}
-
-	if opts.CursorID > 0 {
-		qb.WriteString(" AND id " + comparator + " ?")
-		args = append(args, opts.CursorID)
+		qb.WriteString(" ORDER BY " + orderBy + " " + order)
+		// Обрати внимание: курсор сейчас только по id. Если нужна пагинация
+		// по name/email — потребуется отдельный cursor (CursorName/Email + tie-break по id).
 	}
 
 	if opts.Limit == 0 {
 		opts.Limit = 10
 	}
-
-	qb.WriteString(" ORDER BY " + orderBy + " DESC " + order + " LIMIT ?")
+	qb.WriteString(" LIMIT ?")
 	args = append(args, opts.Limit)
 
 	rows, err := r.DB.Query(qb.String(), args...)
@@ -239,14 +225,6 @@ func (r *CompanyRepository) FindAll(opts CompanyQueryOptions) ([]models.Company,
 		}
 		list = append(list, c)
 	}
-
-	// Reverse the list if direction was "prev"
-	if opts.Direction == "prev" {
-		for i, j := 0, len(list)-1; i < j; i, j = i+1, j-1 {
-			list[i], list[j] = list[j], list[i]
-		}
-	}
-
 	return list, nil
 }
 
