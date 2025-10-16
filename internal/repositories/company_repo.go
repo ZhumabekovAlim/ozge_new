@@ -222,7 +222,7 @@ func (r *CompanyRepository) FindAll(opts CompanyQueryOptions) ([]models.Company,
 		opts.Limit = 10
 	}
 
-	qb.WriteString(" ORDER BY " + orderBy + " " + order + " LIMIT ?")
+	qb.WriteString(" ORDER BY " + orderBy + " DESC " + order + " LIMIT ?")
 	args = append(args, opts.Limit)
 
 	rows, err := r.DB.Query(qb.String(), args...)
