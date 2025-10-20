@@ -11,17 +11,26 @@ type Config struct {
 	Server struct {
 		Address string `yaml:"address"`
 	} `yaml:"server"`
+
 	Database struct {
 		Driver string `yaml:"driver"`
 		URL    string `yaml:"url"`
 	} `yaml:"database"`
+
 	Mobizon struct {
 		APIKey string `yaml:"api_key"`
 	} `yaml:"mobizon"`
+
 	WhatsApp struct {
 		Token         string `yaml:"token"`
 		PhoneNumberID string `yaml:"phone_number_id"`
 	} `yaml:"whatsapp"`
+
+	SMSC struct {
+		Login    string `yaml:"login"`
+		Password string `yaml:"password"`
+		SenderWA string `yaml:"sender_wa"`
+	} `yaml:"smsc"`
 }
 
 // LoadConfig loads the configuration from config.yaml

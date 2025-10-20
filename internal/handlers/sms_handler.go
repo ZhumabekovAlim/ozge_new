@@ -4,6 +4,7 @@ import (
 	"OzgeContract/internal/services"
 	"encoding/json"
 	"net/http"
+	"strings"
 )
 
 // SMSHandler handles HTTP requests for sending SMS/WhatsApp verification codes.
@@ -51,7 +52,7 @@ func (h *SMSHandler) Send(w http.ResponseWriter, r *http.Request) {
 func (h *SMSHandler) SendWhatsApp(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	if h.WhatsService == nil {
+	if h.WhatsService == nil || h.WhatsService.SMSC == nil {
 		http.Error(w, `{"error":"whatsapp service not configured"}`, http.StatusServiceUnavailable)
 		return
 	}
@@ -59,20 +60,20 @@ func (h *SMSHandler) SendWhatsApp(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Phone string `json:"phone"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Phone == "" {
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.Phone) == "" {
 		http.Error(w, `{"error":"invalid input"}`, http.StatusBadRequest)
 		return
 	}
 
 	code, err := h.WhatsService.SendVerificationCode(req.Phone)
 	if err != nil {
-		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusInternalServerError)
+		http.Error(w, `{"error":"`+strings.ReplaceAll(err.Error(), `"`, `'`)+`"}`, http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "ok",
-		"code":   code, // Для теста — отправляем код на фронт
+		"code":   code, // оставить для тестов, в проде — убрать
 	})
 }

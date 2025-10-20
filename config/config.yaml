@@ -11,4 +11,8 @@ mobizon:
 whatsapp:
   token: "EAAKo3A42o0cBPeFhSExeADYKtSSdzAsiuEAaAohPtZB0CLLgYsMSySnCvExpgBUBycEN7ZBYN6FqG1bF0o49Hhww6ZAQmuAZBTN36XZBIdlZBHLuNatzZBkjwkJkx5vC7fK40Giyv8UbGCLaM6CsdENqbEFZAdiDqURXJ3fw6MZCN0VBnBLwnZCL9C1hiAeZAOs3QZDZD"
   phone_number_id: "794162193769783"
-  
+
+smsc:
+  login: "too_nusa"
+  password: "Sake021129"
+  sender_wa: "77086389267" # без +, только цифры
