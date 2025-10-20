@@ -84,14 +84,14 @@ func (s *SMSCWAService) sendWhatsAppText(to, message string) (*smscResponse, err
 	}
 
 	form := url.Values{
-		"login":  {s.Login},
-		"psw":    {s.Password},
-		"phones": {toNorm},             // получатель: 7XXXXXXXXXX
-		"mes":    {message},            // текст (можно с {button,...} и <file ...>)
-		"bot":    {"wa:" + s.SenderWA}, // КЛЮЧЕВОЕ: smsc.kz требует bot=wa:<номер>
-		"fmt":    {"3"},                // JSON-ответ
-		// "charset": {"utf-8"},
-		// "test":    {"1"},                  // включить для проверки без фактической отправки
+		"login":   {s.Login},
+		"psw":     {s.Password},
+		"phones":  {toNorm},             // получатель: 7XXXXXXXXXX
+		"mes":     {message},            // текст (можно с {button,...} и <file ...>)
+		"bot":     {"wa:" + s.SenderWA}, // КЛЮЧЕВОЕ: smsc.kz требует bot=wa:<номер>
+		"fmt":     {"3"},                // JSON-ответ
+		"charset": {"utf-8"},
+		// "test": {"1"}, // включить для проверки без фактической отправки
 	}
 
 	req, err := http.NewRequest(http.MethodPost, base, strings.NewReader(form.Encode()))
