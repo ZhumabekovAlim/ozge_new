@@ -146,7 +146,7 @@ func (s *WhatsAppService) SendVerificationCode(phone string) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("failed to generate code: %w", err)
 	}
-	message := fmt.Sprintf("Ваш код подтверждения: %d. Компания Ozge Contract.{button,code,Копировать код}", code)
+	message := fmt.Sprintf("Ваш код подтверждения: %d. Компания Ozge Contract.", code)
 
 	if _, err := s.SMSC.sendWhatsAppText(phone, message); err != nil {
 		return 0, err
