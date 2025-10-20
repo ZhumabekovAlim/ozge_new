@@ -83,23 +83,23 @@ func (s *SMSCWAService) sendWhatsAppText(to, message string) (*smscResponse, err
 		return nil, err
 	}
 
-	// ВАЖНО: для WhatsApp sender должен быть вида "wa:<номер_бота>"
-	params := url.Values{
+	form := url.Values{
 		"login":  {s.Login},
 		"psw":    {s.Password},
-		"phones": {toNorm},
-		"mes":    {message},
-		"sender": {"wa:" + s.SenderWA},
-		"fmt":    {"3"}, // JSON
-		// "charset": {"utf-8"}, // по желанию
-		// "test": {"1"},        // тестовый режим без фактической отправки
+		"phones": {toNorm},             // получатель: 7XXXXXXXXXX
+		"mes":    {message},            // текст (можно с {button,...} и <file ...>)
+		"bot":    {"wa:" + s.SenderWA}, // КЛЮЧЕВОЕ: smsc.kz требует bot=wa:<номер>
+		"fmt":    {"3"},                // JSON-ответ
+		// "charset": {"utf-8"},
+		// "test":    {"1"},                  // включить для проверки без фактической отправки
 	}
 
-	reqURL := base + "?" + params.Encode()
-	req, err := http.NewRequest(http.MethodGet, reqURL, nil)
+	req, err := http.NewRequest(http.MethodPost, base, strings.NewReader(form.Encode()))
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 	client := s.HTTP
 	if client == nil {
 		client = &http.Client{Timeout: 10 * time.Second}
@@ -146,7 +146,7 @@ func (s *WhatsAppService) SendVerificationCode(phone string) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("failed to generate code: %w", err)
 	}
-	message := fmt.Sprintf("Ваш код подтверждения: %d. Компания Ozge Contract.", code)
+	message := fmt.Sprintf("Ваш код подтверждения: %d. Компания Ozge Contract.{button,code,Копировать код}", code)
 
 	if _, err := s.SMSC.sendWhatsAppText(phone, message); err != nil {
 		return 0, err
